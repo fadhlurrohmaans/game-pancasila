@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 # Konfigurasi Layar Streamlit Mode Wide / Full
 st.set_page_config(
-    page_title="Mancing Pancasila - Realistic Arcade",
+    page_title="Mancing Pancasila - Arcade SMP",
     page_icon="🎣",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -29,7 +29,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Engine Game HTML5 + Realistic Canvas Graphics + Strike & Fish Effects
+# Engine Game HTML5 + Canvas + System Nyawa + Soal SMP
 game_code = """
 <!DOCTYPE html>
 <html lang="id">
@@ -75,7 +75,6 @@ game_code = """
             background: #000;
             display: block;
         }
-        /* Mobile Touch Controls Overlay */
         .touch-controls {
             position: absolute;
             bottom: 20px;
@@ -114,7 +113,7 @@ game_code = """
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 90%;
+            width: 92%;
             max-width: 580px;
             background: rgba(8, 16, 32, 0.96);
             border: 2px solid #FFD700;
@@ -138,6 +137,10 @@ game_code = """
             cursor: pointer;
             transition: all 0.2s;
         }
+        .quiz-btn:hover {
+            background: rgba(0, 210, 255, 0.2);
+            border-color: #00ffcc;
+        }
         .quiz-btn:active {
             background: #00d2ff;
             color: #000;
@@ -159,22 +162,20 @@ game_code = """
 <div class="game-wrapper">
     <canvas id="fishCanvas" width="1000" height="650"></canvas>
     
-    <!-- Virtual Touch Control Buttons -->
     <div class="touch-controls">
         <button class="btn-touch" id="btnCast">🎣 LEMPAR KAIL</button>
         <button class="btn-touch btn-reel" id="btnReel">🌀 TARIK (HOLD)</button>
     </div>
 
-    <!-- Quiz Dialog Overlay -->
     <div class="quiz-overlay" id="quizBox">
         <div class="fish-caught-card">
             <div>
-                <span style="color:#FFD700; font-size:12px; font-weight:bold; letter-spacing:1px;">🐟 TANGKAPAN BERHASIL!</span>
+                <span style="color:#FFD700; font-size:12px; font-weight:bold; letter-spacing:1px;">🐟 IKAN UDAH DIPATUK! JAWAB DULU:</span>
                 <h4 id="fishName" style="margin:2px 0 0 0; color:#fff; font-size:18px;">Ikan Mas Pancasila</h4>
             </div>
             <span id="fishWeight" style="color:#00ffcc; font-weight:bold; font-size:16px;">3.5 kg</span>
         </div>
-        <p id="quizQuestion" style="font-size:15px; line-height:1.4; color:#e0e0e0; margin: 4px 0;"></p>
+        <p id="quizQuestion" style="font-size:15px; line-height:1.4; color:#e0e0e0; margin: 4px 0; font-weight:500;"></p>
         <div id="quizOptions" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 </div>
@@ -189,11 +190,12 @@ function resizeCanvas() {
 }
 resizeCanvas();
 
-// Game Configurations
-let state = 'MENU'; // MENU, CASTING, WAITING, STRIKE, REELING, FISH_JUMPING, QUIZ, LEVEL_WIN, VICTORY, GAMEOVER
+// Status Game
+let state = 'MENU'; // MENU, WAITING, STRIKE, REELING, FISH_JUMPING, QUIZ, LEVEL_WIN, VICTORY, GAMEOVER
 let difficulty = 'MUDAH';
 let currentLevel = 1;
 let score = 0;
+let lives = 3; // SISTEM NYAWA
 let caughtInLevel = 0;
 
 const diffSettings = {
@@ -205,25 +207,26 @@ const diffSettings = {
 const levelTargets = { 1: 3, 2: 4, 3: 5 };
 const levelNames = { 1: "Danau Pancasila", 2: "Sungai Nusantara", 3: "Laut Garuda" };
 
-// Fishing Variables
+// Mekanik Memancing
 let bobber = { x: 500, y: 380, active: false };
 let tension = 50;
 let reelProgress = 0;
 let isReeling = false;
 let biteTimer = 0;
 
-// Particle & Effect Systems (Efek Strike & Cipratan)
+// Efek Visual
 let particles = [];
 let ripples = [];
 let screenShake = 0;
 let strikePulse = 0;
+let messageNotice = { text: "", timer: 0, color: "#ff0055" };
 
-// Jumping Caught Fish Animation State
+// Animasi Lompatan Ikan
 let jumpingFish = {
     active: false,
     x: 0, y: 0,
     startX: 0, startY: 0,
-    endX: 180, endY: 480, // Ke arah Dermaga Kayu
+    endX: 180, endY: 480,
     progress: 0,
     species: "",
     weight: "0 kg",
@@ -233,44 +236,79 @@ let jumpingFish = {
 let waveOffset = 0;
 let currentQuestion = null;
 
-// Species List per Level
+// Nama Ikan Unik per Level
 const fishSpecies = {
-    1: ["Ikan Mas Sila Pertama", "Ikan Gurame Pancasila", "Ikan Nila Pandangan Hidup"],
-    2: ["Ikan Patin Jiwa Bangsa", "Ikan Baung Sumber Hukum", "Ikan Arwana Musyawarah"],
-    3: ["Ikan Kakap Kepribadian Bangsa", "Ikan Tuna Keadilan Sosial", "Ikan Marlin Garuda"]
+    1: ["Ikan Mas Bintang", "Ikan Gurame Toleransi", "Ikan Nila Rantai Emas"],
+    2: ["Ikan Patin Pohon Beringin", "Ikan Baung Musyawarah", "Ikan Arwana Gotong Royong"],
+    3: ["Ikan Kakap Kepala Banteng", "Ikan Tuna Padi Kapas", "Ikan Marlin Garuda Muda"]
 };
 
-// Data Soal
+// SOAL-SOAL PANCASILA UNTUK ANAK SMP (Bahasa Mudah & Relevan)
 const questions = [
     {
-        sila: "Dasar Negara",
-        q: "Pancasila digunakan sebagai landasan utama dalam mengatur dan menyelenggarakan tata negara Indonesia. Fungsi ini dinamakan...",
-        opts: ["1. Dasar Negara", "2. Pandangan Hidup", "3. Kepribadian Bangsa"],
+        q: "Saat ada teman beda agama yang mau beribadah, sikap kita yang paling tepat sesuai Sila ke-1 adalah...",
+        opts: ["A. Menghormati dan tidak mengganggunya", "B. Menyuruhnya cepat selesai", "C. Mengajaknya main game saat itu juga"],
         ans: 0
     },
     {
-        sila: "Pandangan Hidup",
-        q: "Pancasila menjadi petunjuk arah moral, etika, dan perilaku warga negara dalam kehidupan sehari-hari...",
-        opts: ["1. Sumber Hukum", "2. Pandangan Hidup Bangsa", "3. Cita-cita Bangsa"],
+        q: "Membantu teman yang jatuh dari sepeda tanpa membeda-bedakan kaya atau miskin adalah pengamalan Sila ke-...",
+        opts: ["A. Sila Ke-1 (Ketuhanan)", "B. Sila Ke-2 (Kemanusiaan)", "C. Sila Ke-3 (Persatuan)"],
         ans: 1
     },
     {
-        sila: "Jiwa Bangsa",
-        q: "Pancasila lahir bersamaan dengan adanya bangsa Indonesia dan berfungsi memberikan jiwa pemersatu...",
-        opts: ["1. Perjanjian Luhur", "2. Jiwa Bangsa Indonesia", "3. Ideologi Terbuka"],
-        ans: 1
-    },
-    {
-        sila: "Sumber dari Segala Sumber Hukum",
-        q: "Semua peraturan perundang-undangan di Indonesia tidak boleh bertentangan dengan nilai Pancasila...",
-        opts: ["1. Sumber dari Segala Sumber Hukum", "2. Dasar Negara", "3. Kepribadian Bangsa"],
+        q: "Di sekolahmu ada murid dari berbagai daerah dan suku. Kita tetap harus rukun dan kompak. Ini sesuai nilai Sila ke-...",
+        opts: ["A. Sila Ke-3 (Persatuan Indonesia)", "B. Sila Ke-4 (Kerakyatan)", "C. Sila Ke-5 (Keadilan Sosial)"],
         ans: 0
     },
     {
-        sila: "Kepribadian Bangsa",
-        q: "Pancasila memberikan ciri khas unik (gotong royong, musyawarah) yang membedakan Indonesia dengan bangsa lain...",
-        opts: ["1. Cita-cita Bangsa", "2. Jiwa Bangsa", "3. Kepribadian Bangsa"],
+        q: "Saat menentukan ketua OSIS atau tempat piknik kelas, keputusan diambil lewat diskusi bersama. Diskusi ini disebut...",
+        opts: ["A. Kerja kelompok", "B. Musyawarah mufakat", "C. Ronda malam"],
+        ans: 1
+    },
+    {
+        q: "Suka menabung, hemat, dan tidak boros jajan di kantin merupakan contoh perilaku sederhana Sila ke-...",
+        opts: ["A. Sila Ke-3", "B. Sila Ke-4", "C. Sila Ke-5"],
         ans: 2
+    },
+    {
+        q: "Pancasila dipakai sebagai 'kompas' atau pedoman bertindak dalam kehidupan sehari-hari. Ini fungsi Pancasila sebagai...",
+        opts: ["A. Pandangan Hidup Bangsa", "B. Dasar Negara", "C. Alat Olahraga"],
+        ans: 0
+    },
+    {
+        q: "Pancasila adalah pondasi utama dalam mengatur pemerintahan dan tata negara Indonesia. Fungsi ini disebut...",
+        opts: ["A. Dasar Negara", "B. Perjanjian Internasional", "C. Lambang Daerah"],
+        ans: 0
+    },
+    {
+        q: "Kebiasaan gotong royong dan ramah tamah membuat bangsa Indonesia punya ciri khas unik. Ini menunjukkan Pancasila sebagai...",
+        opts: ["A. Kepribadian Bangsa", "B. Lagu Kebangsaan", "C. Tata Tertib Sekolah"],
+        ans: 0
+    },
+    {
+        q: "Semua hukum dan aturan perundang-undangan di Indonesia tidak boleh bertentangan dengan Pancasila. Artinya Pancasila sebagai...",
+        opts: ["A. Sumber dari Segala Sumber Hukum", "B. Buku Teks Pelajaran", "C. Slogan Parade"],
+        ans: 0
+    },
+    {
+        q: "Simbol 'Rantai Emas' pada dada burung Garuda melambangkan Sila ke-...",
+        opts: ["A. Sila Ke-1 (Ketuhanan)", "B. Sila Ke-2 (Kemanusiaan)", "C. Sila Ke-3 (Persatuan)"],
+        ans: 1
+    },
+    {
+        q: "Simbol 'Pohon Beringin' yang teduh dan punya akar kuat melambangkan...",
+        opts: ["A. Persatuan Indonesia (Sila ke-3)", "B. Keadilan Sosial (Sila ke-5)", "C. Ketuhanan (Sila ke-1)"],
+        ans: 0
+    },
+    {
+        q: "Kenapa Kepala Banteng dijadikan simbol Sila ke-4?",
+        opts: ["A. Karena banteng hewan yang suka berkumpul dan bermusyawarah", "B. Karena banteng hewan yang paling cepat lari", "C. Karena banteng suka makan rumput"],
+        ans: 0
+    },
+    {
+        q: "Simbol Padi dan Kapas pada Sila ke-5 melambangkan kebutuhan dasar manusia, yaitu...",
+        opts: ["A. Pangan (Makanan) dan Sandang (Pakaian)", "B. Rumah Mewah dan Mobil", "C. Smartphone dan Kuota"],
+        ans: 0
     }
 ];
 
@@ -300,7 +338,12 @@ window.addEventListener("keyup", (e) => {
     if (e.code === "Space") isReeling = false;
 });
 
-// Helper Functions: Particles & Ripples
+function triggerNotice(msg, color = "#ff0055") {
+    messageNotice.text = msg;
+    messageNotice.timer = 100;
+    messageNotice.color = color;
+}
+
 function triggerSplash(x, y, count = 25) {
     for (let i = 0; i < count; i++) {
         particles.push({
@@ -319,7 +362,13 @@ function triggerRipple(x, y) {
 }
 
 function castLine() {
-    if (state === 'MENU' || state === 'LEVEL_WIN' || state === 'VICTORY') {
+    if (state === 'MENU' || state === 'LEVEL_WIN' || state === 'VICTORY' || state === 'GAMEOVER') {
+        if (state === 'GAMEOVER' || state === 'VICTORY') {
+            lives = 3;
+            score = 0;
+            currentLevel = 1;
+            caughtInLevel = 0;
+        }
         state = 'WAITING';
         resetFishingState();
     } else if (state === 'WAITING' && !bobber.active) {
@@ -328,7 +377,7 @@ function castLine() {
         bobber.y = 350 + Math.random() * 100;
         triggerSplash(bobber.x, bobber.y, 15);
         triggerRipple(bobber.x, bobber.y);
-        biteTimer = 100 + Math.floor(Math.random() * 150);
+        biteTimer = 90 + Math.floor(Math.random() * 120);
         btnCast.style.display = "none";
     }
 }
@@ -351,21 +400,34 @@ function startReelingMechanic() {
     triggerSplash(bobber.x, bobber.y, 20);
 }
 
+function loseLife(reasonText) {
+    lives--;
+    screenShake = 18;
+    triggerNotice(reasonText, "#ff0055");
+
+    if (lives <= 0) {
+        state = 'GAMEOVER';
+        btnReel.style.display = "none";
+        btnCast.style.display = "none";
+    } else {
+        state = 'WAITING';
+        resetFishingState();
+    }
+}
+
 function startFishJumpingAnim() {
     state = 'FISH_JUMPING';
     btnReel.style.display = "none";
     
-    // Config Jump Arc
     jumpingFish.active = true;
     jumpingFish.startX = bobber.x;
     jumpingFish.startY = bobber.y;
     jumpingFish.progress = 0;
     
-    // Randomize Species & Weight
     const speciesList = fishSpecies[currentLevel];
     jumpingFish.species = speciesList[Math.floor(Math.random() * speciesList.length)];
-    jumpingFish.weight = (1.8 + Math.random() * 3.5).toFixed(1) + " kg";
-    jumpingFish.color = currentLevel === 1 ? '#FFD700' : (currentLevel === 2 ? '#45f3ff' : '#ff0055');
+    jumpingFish.weight = (1.5 + Math.random() * 3.2).toFixed(1) + " kg";
+    jumpingFish.color = currentLevel === 1 ? '#FFD700' : (currentLevel === 2 ? '#00ffcc' : '#ff0055');
 
     triggerSplash(bobber.x, bobber.y, 35);
     screenShake = 12;
@@ -398,6 +460,8 @@ function answerQuiz(selectedIndex) {
     if (selectedIndex === currentQuestion.ans) {
         score += 150;
         caughtInLevel++;
+        triggerNotice(" Jawaban Benar! +150 Poin", "#00ff66");
+
         if (caughtInLevel >= levelTargets[currentLevel]) {
             if (currentLevel < 3) {
                 state = 'LEVEL_WIN';
@@ -409,9 +473,7 @@ function answerQuiz(selectedIndex) {
             resetFishingState();
         }
     } else {
-        // Jawaban Salah
-        state = 'WAITING';
-        resetFishingState();
+        loseLife("❌ Jawaban Salah! Ikan Lepas & Nyawa -1");
     }
 }
 
@@ -419,13 +481,14 @@ function answerQuiz(selectedIndex) {
 function update() {
     waveOffset += 0.03;
     if (screenShake > 0) screenShake *= 0.88;
+    if (messageNotice.timer > 0) messageNotice.timer--;
 
     // Update Particles
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.35; // Gravity
+        p.vy += 0.35;
         p.alpha -= 0.025;
         if (p.alpha <= 0) particles.splice(i, 1);
     }
@@ -448,7 +511,7 @@ function update() {
             triggerRipple(bobber.x, bobber.y);
             
             btnCast.style.display = "block";
-            btnCast.innerText = "⚡ STRIKE! TARIK SEKARANG!";
+            btnCast.innerText = "⚡ STRIKE! TEKAN UNTUK TARIK!";
             btnCast.onclick = () => {
                 btnCast.onclick = castLine;
                 startReelingMechanic();
@@ -456,7 +519,7 @@ function update() {
         }
     }
 
-    // Reeling Physics Logic
+    // Reeling Physics
     if (state === 'REELING') {
         const cfg = diffSettings[difficulty];
         if (isReeling) tension += cfg.tensionGain;
@@ -469,10 +532,10 @@ function update() {
             if (Math.random() > 0.7) triggerRipple(bobber.x, bobber.y);
         }
 
+        // Tali Putus / Kendur -> Ikan Lepas & Nyawa Berkurang
         if (tension > 98 || tension < 5) {
-            triggerSplash(bobber.x, bobber.y, 20);
-            state = 'WAITING';
-            resetFishingState();
+            triggerSplash(bobber.x, bobber.y, 25);
+            loseLife("💦 Senar Putus / Kendur! Ikan Lepas (-1 Nyawa)");
         }
 
         if (reelProgress >= 100) {
@@ -480,15 +543,14 @@ function update() {
         }
     }
 
-    // Jumping Fish Animation Arc Logic
+    // Jumping Fish Animation Arc
     if (state === 'FISH_JUMPING') {
         jumpingFish.progress += 0.025;
         let t = jumpingFish.progress;
         
-        // Parabola Arc Trajectory
         jumpingFish.x = (1 - t) * jumpingFish.startX + t * jumpingFish.endX;
         let directY = (1 - t) * jumpingFish.startY + t * jumpingFish.endY;
-        jumpingFish.y = directY - Math.sin(t * Math.PI) * 160; // Curve Jump Height
+        jumpingFish.y = directY - Math.sin(t * Math.PI) * 160;
 
         if (Math.random() > 0.4) {
             particles.push({
@@ -505,14 +567,13 @@ function update() {
     }
 }
 
-// Function Draw Fish Vector Visual
+// Visual Ikan
 function drawFishGraphic(ctx, x, y, scale = 1, angle = 0, color = "#FFD700") {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
     ctx.scale(scale, scale);
 
-    // Body
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.ellipse(0, 0, 30, 16, 0, 0, Math.PI * 2);
@@ -521,7 +582,6 @@ function drawFishGraphic(ctx, x, y, scale = 1, angle = 0, color = "#FFD700") {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Tail
     ctx.beginPath();
     ctx.moveTo(-25, 0);
     ctx.lineTo(-42, -14);
@@ -531,14 +591,12 @@ function drawFishGraphic(ctx, x, y, scale = 1, angle = 0, color = "#FFD700") {
     ctx.fill();
     ctx.stroke();
 
-    // Fin
     ctx.beginPath();
     ctx.moveTo(-2, -14);
     ctx.lineTo(6, -24);
     ctx.lineTo(12, -12);
     ctx.fill();
 
-    // Eye
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(16, -4, 4, 0, Math.PI * 2);
@@ -551,43 +609,35 @@ function drawFishGraphic(ctx, x, y, scale = 1, angle = 0, color = "#FFD700") {
     ctx.restore();
 }
 
-// Main Render Loop
+// Render Utama
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    // Screen Shake Effect Offset
     if (screenShake > 0.5) {
         let shakeX = (Math.random() - 0.5) * screenShake;
         let shakeY = (Math.random() - 0.5) * screenShake;
         ctx.translate(shakeX, shakeY);
     }
 
-    // 1. Sky Gradient
+    // Sky
     let skyGrad = ctx.createLinearGradient(0, 0, 0, 300);
     if (currentLevel === 1) {
-        skyGrad.addColorStop(0, '#1a0b2e');
-        skyGrad.addColorStop(0.6, '#8c2f5e');
-        skyGrad.addColorStop(1, '#f8664b');
+        skyGrad.addColorStop(0, '#1a0b2e'); skyGrad.addColorStop(0.6, '#8c2f5e'); skyGrad.addColorStop(1, '#f8664b');
     } else if (currentLevel === 2) {
-        skyGrad.addColorStop(0, '#0f2027');
-        skyGrad.addColorStop(0.6, '#203a43');
-        skyGrad.addColorStop(1, '#2c5364');
+        skyGrad.addColorStop(0, '#0f2027'); skyGrad.addColorStop(0.6, '#203a43'); skyGrad.addColorStop(1, '#2c5364');
     } else {
-        skyGrad.addColorStop(0, '#050515');
-        skyGrad.addColorStop(0.6, '#0a1128');
-        skyGrad.addColorStop(1, '#1c2541');
+        skyGrad.addColorStop(0, '#050515'); skyGrad.addColorStop(0.6, '#0a1128'); skyGrad.addColorStop(1, '#1c2541');
     }
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvas.width, 300);
 
-    // Sun / Moon
     ctx.fillStyle = "rgba(255, 230, 150, 0.6)";
     ctx.beginPath();
     ctx.arc(800, 140, 40, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Water Waves
+    // Water
     let waterGrad = ctx.createLinearGradient(0, 300, 0, canvas.height);
     waterGrad.addColorStop(0, 'rgba(0, 105, 148, 0.9)');
     waterGrad.addColorStop(0.5, 'rgba(0, 55, 90, 0.95)');
@@ -605,7 +655,7 @@ function draw() {
     ctx.closePath();
     ctx.fill();
 
-    // Draw Ripples
+    // Ripples
     ripples.forEach(r => {
         ctx.strokeStyle = `rgba(255, 255, 255, ${r.alpha})`;
         ctx.lineWidth = 1.5;
@@ -614,13 +664,10 @@ function draw() {
         ctx.stroke();
     });
 
-    // 3. Wooden Dock & Fishing Rod
-    ctx.fillStyle = "#2c1d11";
-    ctx.fillRect(0, 480, 220, 170);
-    ctx.fillStyle = "#1e130a";
-    ctx.fillRect(0, 510, 220, 10);
+    // Dock & Rod
+    ctx.fillStyle = "#2c1d11"; ctx.fillRect(0, 480, 220, 170);
+    ctx.fillStyle = "#1e130a"; ctx.fillRect(0, 510, 220, 10);
 
-    // Rod
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 5;
     ctx.beginPath();
@@ -631,7 +678,7 @@ function draw() {
     ctx.quadraticCurveTo(200, 350, rodTipX, rodTipY);
     ctx.stroke();
 
-    // Senar Pancing
+    // Senar
     if (bobber.active || state === 'REELING' || state === 'STRIKE') {
         ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
         ctx.lineWidth = 1;
@@ -640,7 +687,6 @@ function draw() {
         ctx.lineTo(bobber.x, bobber.y);
         ctx.stroke();
 
-        // Bobber
         let bobY = bobber.y + (state === 'STRIKE' ? Math.sin(waveOffset * 15) * 10 : 0);
         ctx.fillStyle = "#ff0000";
         ctx.beginPath();
@@ -650,7 +696,7 @@ function draw() {
         ctx.fillRect(bobber.x - 6, bobY - 2, 12, 4);
     }
 
-    // 4. Draw Particles (Splashes)
+    // Particles
     particles.forEach(p => {
         ctx.save();
         ctx.globalAlpha = p.alpha;
@@ -661,13 +707,13 @@ function draw() {
         ctx.restore();
     });
 
-    // 5. Draw Jumping Fish Animation
+    // Jumping Fish
     if (state === 'FISH_JUMPING' && jumpingFish.active) {
         let angle = Math.atan2(jumpingFish.y - bobber.y, jumpingFish.x - bobber.x);
         drawFishGraphic(ctx, jumpingFish.x, jumpingFish.y, 1.2, angle, jumpingFish.color);
     }
 
-    // 6. STRIKE Effect Text Banner
+    // STRIKE Banner
     if (state === 'STRIKE') {
         strikePulse += 0.1;
         let scale = 1 + Math.sin(strikePulse * 3) * 0.15;
@@ -688,7 +734,7 @@ function draw() {
         ctx.restore();
     }
 
-    // 7. Tension & Progress Meter
+    // Tension Meter
     if (state === 'REELING') {
         ctx.fillStyle = "rgba(8, 16, 32, 0.85)";
         ctx.fillRect(350, 40, 300, 110);
@@ -699,73 +745,108 @@ function draw() {
         ctx.fillStyle = "#fff";
         ctx.font = "12px sans-serif";
         ctx.textAlign = "left";
-        ctx.fillText("KETEGANGAN SENAR (Jaga di Area Hijau!)", 360, 60);
+        ctx.fillText("KETEGANGAN SENAR (Tahan tombol di Hijau!)", 360, 60);
 
         ctx.fillStyle = "#222";
         ctx.fillRect(360, 68, 280, 20);
 
-        // Green Zone
         ctx.fillStyle = "#00ff66";
         ctx.fillRect(360 + (35 * 2.8), 68, (40 * 2.8), 20);
 
-        // Pointer
         ctx.fillStyle = tension > 75 || tension < 35 ? "#ff0055" : "#ffffff";
         ctx.fillRect(360 + (tension * 2.8) - 3, 64, 6, 28);
 
-        // Progress Reel Bar
         ctx.fillStyle = "#fff";
-        ctx.fillText("JARAK TANGKAPAN: " + Math.floor(reelProgress) + "%", 360, 108);
+        ctx.fillText("JARAK IKAN: " + Math.floor(reelProgress) + "%", 360, 108);
         ctx.fillStyle = "#222";
         ctx.fillRect(360, 115, 280, 12);
         ctx.fillStyle = "#00d2ff";
         ctx.fillRect(360, 115, (reelProgress * 2.8), 12);
     }
 
-    // 8. Top HUD Bar
-    ctx.fillStyle = "rgba(10, 20, 35, 0.85)";
-    ctx.fillRect(15, 15, canvas.width - 30, 45);
+    // Notice Overlay Text
+    if (messageNotice.timer > 0) {
+        ctx.save();
+        ctx.fillStyle = messageNotice.color;
+        ctx.font = "bold 22px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(messageNotice.text, canvas.width/2, 240);
+        ctx.restore();
+    }
+
+    // TOP HUD BAR (Termasuk Tampilan NYAWA ❤️)
+    ctx.fillStyle = "rgba(10, 20, 35, 0.88)";
+    ctx.fillRect(15, 12, canvas.width - 30, 48);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-    ctx.strokeRect(15, 15, canvas.width - 30, 45);
+    ctx.strokeRect(15, 12, canvas.width - 30, 48);
 
+    ctx.font = "bold 15px 'Segoe UI', sans-serif";
+    
+    // Level
     ctx.fillStyle = "#00ffcc";
-    ctx.font = "bold 16px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("📍 " + levelNames[currentLevel], 30, 43);
+    ctx.fillText("📍 " + levelNames[currentLevel], 28, 42);
 
+    // Nyawa (Hearts)
+    ctx.fillStyle = "#ff3366";
+    let heartIcons = "❤️".repeat(Math.max(0, lives));
+    ctx.fillText("NYAWA: " + (heartIcons || "💀"), 220, 42);
+
+    // Skor
     ctx.fillStyle = "#FFD700";
-    ctx.fillText("SKOR: " + score, 320, 43);
+    ctx.fillText("SKOR: " + score, 420, 42);
 
+    // Target Ikan
     ctx.fillStyle = "#ffffff";
-    ctx.fillText("IKAN: " + caughtInLevel + "/" + levelTargets[currentLevel], 520, 43);
+    ctx.fillText("IKAN: " + caughtInLevel + "/" + levelTargets[currentLevel], 600, 42);
 
+    // Kesulitan
     ctx.fillStyle = "#ff9900";
-    ctx.fillText("KESULITAN: " + difficulty, 750, 43);
+    ctx.fillText("LEVEL: " + difficulty, 780, 42);
 
-    // 9. Menu Overlays
+    // Overlays Menu
     if (state === 'MENU') {
-        ctx.fillStyle = "rgba(5, 11, 20, 0.9)";
+        ctx.fillStyle = "rgba(5, 11, 20, 0.92)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#00d2ff";
         ctx.font = "bold 38px sans-serif";
-        ctx.fillText("🎣 MANCING PANCASILA 🎣", canvas.width/2, 180);
+        ctx.fillText("🎣 MANCING PANCASILA 🎣", canvas.width/2, 170);
 
         ctx.fillStyle = "#e0e0e0";
         ctx.font = "16px sans-serif";
-        ctx.fillText("Pilih Tingkat Kesulitan Memancing:", canvas.width/2, 240);
+        ctx.fillText("Pilih Tingkat Kesulitan Memancing:", canvas.width/2, 230);
 
-        drawCanvasBtn(canvas.width/2 - 220, 280, 130, 45, "MUDAH", difficulty === 'MUDAH' ? '#00ff66' : '#222');
-        drawCanvasBtn(canvas.width/2 - 65, 280, 130, 45, "SEDANG", difficulty === 'SEDANG' ? '#FFD700' : '#222');
-        drawCanvasBtn(canvas.width/2 + 90, 280, 130, 45, "TINGGI", difficulty === 'TINGGI' ? '#ff0055' : '#222');
+        drawCanvasBtn(canvas.width/2 - 220, 270, 130, 45, "MUDAH", difficulty === 'MUDAH' ? '#00ff66' : '#222');
+        drawCanvasBtn(canvas.width/2 - 65, 270, 130, 45, "SEDANG", difficulty === 'SEDANG' ? '#FFD700' : '#222');
+        drawCanvasBtn(canvas.width/2 + 90, 270, 130, 45, "TINGGI", difficulty === 'TINGGI' ? '#ff0055' : '#222');
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "15px sans-serif";
-        ctx.fillText("Tekan [LEMPAR KAIL] di bawah untuk mulai memancing!", canvas.width/2, 420);
+        ctx.fillText("Sistem Game: Kamu punya 3 Nyawa (❤️). Hati-hati jangan sampai senar putus / salah jawab!", canvas.width/2, 380);
+        ctx.fillText("Tekan [LEMPAR KAIL] di bawah untuk mulai memancing!", canvas.width/2, 410);
+    }
+
+    if (state === 'GAMEOVER') {
+        ctx.fillStyle = "rgba(15, 5, 10, 0.94)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
+        
+        ctx.fillStyle = "#ff0055";
+        ctx.font = "bold 42px sans-serif";
+        ctx.fillText("💀 GAME OVER! 💀", canvas.width/2, 210);
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "18px sans-serif";
+        ctx.fillText("Nyawamu telah habis! Ikan-ikan berhasil meloloskan diri.", canvas.width/2, 270);
+        ctx.fillText("Total Skor Akhir Kamu: " + score, canvas.width/2, 310);
+        
+        drawCanvasBtn(canvas.width/2 - 100, 360, 200, 50, "🔄 COBA LAGI", "#ff0055");
     }
 
     if (state === 'LEVEL_WIN') {
-        ctx.fillStyle = "rgba(5, 11, 20, 0.9)";
+        ctx.fillStyle = "rgba(5, 11, 20, 0.92)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.textAlign = "center";
         ctx.fillStyle = "#00ff66";
@@ -773,7 +854,7 @@ function draw() {
         ctx.fillText("🎉 STAGE " + currentLevel + " SELESAI! 🎉", canvas.width/2, 230);
         ctx.fillStyle = "#ffffff";
         ctx.font = "18px sans-serif";
-        ctx.fillText("Semua Ikan Pancasila di lokasi ini berhasil ditangkap!", canvas.width/2, 280);
+        ctx.fillText("Mantap! Kamu berhasil menangkap semua ikan di lokasi ini!", canvas.width/2, 280);
         
         drawCanvasBtn(canvas.width/2 - 100, 340, 200, 50, "LANJUT LEVEL " + (currentLevel+1), "#00d2ff");
     }
@@ -787,7 +868,7 @@ function draw() {
         ctx.fillText("🏆 PEMANCING PANCASILA SEJATI! 🏆", canvas.width/2, 220);
         ctx.fillStyle = "#ffffff";
         ctx.font = "18px sans-serif";
-        ctx.fillText("Kamu menguasai seluruh lokasi & memahami fungsi Pancasila! Skor: " + score, canvas.width/2, 280);
+        ctx.fillText("Hebat! Kamu menguasai lokasi mancing & paham nilai Pancasila! Total Skor: " + score, canvas.width/2, 280);
         
         drawCanvasBtn(canvas.width/2 - 100, 350, 200, 50, "MAIN LAGI", "#00ff66");
     }
@@ -807,17 +888,26 @@ function drawCanvasBtn(x, y, w, h, text, bg) {
     ctx.fillText(text, x + w/2, y + h/2 + 5);
 }
 
-// Menu Clicks
+// Event Klik Menu / Game Over
 canvas.addEventListener("click", (e) => {
     const rect = canvas.getBoundingClientRect();
     const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
     const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
     if (state === 'MENU') {
-        if (clickY >= 280 && clickY <= 325) {
+        if (clickY >= 270 && clickY <= 315) {
             if (clickX >= canvas.width/2 - 220 && clickX <= canvas.width/2 - 90) difficulty = 'MUDAH';
             if (clickX >= canvas.width/2 - 65 && clickX <= canvas.width/2 + 65) difficulty = 'SEDANG';
             if (clickX >= canvas.width/2 + 90 && clickX <= canvas.width/2 + 220) difficulty = 'TINGGI';
+        }
+    } else if (state === 'GAMEOVER') {
+        if (clickX >= canvas.width/2 - 100 && clickX <= canvas.width/2 + 100 && clickY >= 360 && clickY <= 410) {
+            lives = 3;
+            score = 0;
+            currentLevel = 1;
+            caughtInLevel = 0;
+            state = 'MENU';
+            resetFishingState();
         }
     } else if (state === 'LEVEL_WIN') {
         if (clickX >= canvas.width/2 - 100 && clickX <= canvas.width/2 + 100 && clickY >= 340 && clickY <= 390) {
@@ -831,6 +921,7 @@ canvas.addEventListener("click", (e) => {
             currentLevel = 1;
             caughtInLevel = 0;
             score = 0;
+            lives = 3;
             state = 'MENU';
             resetFishingState();
         }
@@ -850,5 +941,5 @@ gameLoop();
 </html>
 """
 
-# Render Game UI Fullscreen ke Streamlit
+# Render Game ke Streamlit
 components.html(game_code, height=720, scrolling=False)

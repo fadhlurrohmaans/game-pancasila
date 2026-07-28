@@ -1,37 +1,42 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+# Konfigurasi Layar Streamlit Mode Wide / Full
 st.set_page_config(
-    page_title="Petualangan Garuda - Pancasila Arcade",
-    page_icon="🦅",
-    layout="centered",
+    page_title="Mancing Pancasila - Realistic Arcade",
+    page_icon="🎣",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS Streamlit agar tampil full & rapi di layar HP
+# Custom CSS Streamlit untuk Tampilan Layar Penuh (Full Screen Mobile/Desktop)
 st.markdown("""
 <style>
-    .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-        max-width: 850px;
-    }
-    #MainMenu {visibility: hidden;}
+    /* Hilangkan Header & Padding Bawaan Streamlit */
+    header {visibility: hidden;}
     footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+        max-width: 100% !important;
+    }
+    body {
+        background-color: #050b14;
+        overflow: hidden;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🦅 Petualangan Garuda: Penjaga Pancasila")
-
-# Engine Game HTML5 + Cyber Arcade Graphics + Touch Controls
+# Engine Game HTML5 + Realistic Canvas Graphics + Touch Controls
 game_code = """
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
             box-sizing: border-box;
@@ -40,490 +45,612 @@ game_code = """
             touch-action: manipulation;
         }
         body {
-            background-color: #0b0c10;
-            color: #66fcf1;
-            font-family: 'Courier New', Courier, monospace;
+            background: #050b14;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 5px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
         }
-        .canvas-container {
+        .game-wrapper {
             position: relative;
-            width: 100%;
-            max-width: 780px;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1200px;
+            max-height: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         canvas {
             width: 100%;
-            height: auto;
-            border: 3px solid #45f3ff;
+            height: 100%;
             border-radius: 12px;
-            box-shadow: 0 0 20px rgba(69, 243, 255, 0.4);
-            background: #0d0e15;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            background: #000;
             display: block;
         }
-        /* Virtual Controller (Touch Pad Android) */
-        .controls-wrapper {
-            width: 100%;
-            max-width: 780px;
-            margin-top: 10px;
+        /* Mobile Touch Controls Overlay */
+        .touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            background: #1f2833;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #45f3ff;
+            padding: 0 25px;
+            pointer-events: none;
+            z-index: 10;
         }
-        .dpad {
-            display: grid;
-            grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(3, 50px);
-            gap: 4px;
-        }
-        .btn-ctrl {
-            background: #0b0c10;
-            border: 2px solid #45f3ff;
-            color: #45f3ff;
-            font-size: 20px;
+        .btn-touch {
+            pointer-events: auto;
+            background: linear-gradient(135deg, #00d2ff, #0066ff);
+            border: 2px solid #ffffff;
+            color: #ffffff;
             font-weight: bold;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 0 #1f2833;
-            active { background: #45f3ff; color: #000; }
+            font-size: 18px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+            transition: transform 0.1s, background 0.2s;
+            cursor: pointer;
         }
-        .btn-ctrl:active {
-            transform: translateY(2px);
-            background: #45f3ff;
-            color: #0b0c10;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .btn-quiz {
-            width: 60px;
-            height: 60px;
-            background: #c5a059;
-            border: 2px solid #fff;
-            color: #000;
-            font-size: 22px;
-            font-weight: bold;
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
-        }
-        .btn-quiz:active {
+        .btn-touch:active {
             transform: scale(0.92);
-            background: #fff;
+            background: linear-gradient(135deg, #00ffcc, #0099ff);
         }
-        .btn-space {
-            width: 130px;
-            height: 50px;
-            background: #ff0055;
-            border: 2px solid #fff;
+        .btn-reel {
+            background: linear-gradient(135deg, #ff0055, #ff6600);
+            box-shadow: 0 6px 20px rgba(255, 0, 85, 0.5);
+            display: none;
+        }
+        .quiz-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 550px;
+            background: rgba(10, 20, 38, 0.95);
+            border: 2px solid #00d2ff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 20;
+            backdrop-filter: blur(8px);
+        }
+        .quiz-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #00d2ff;
             color: #fff;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 8px;
-            text-shadow: 0 0 5px #000;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .btn-space:active { background: #ff6699; }
+        .quiz-btn:active {
+            background: #00d2ff;
+            color: #000;
+        }
     </style>
 </head>
 <body>
 
-<div class="canvas-container">
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-</div>
-
-<!-- On-Screen Virtual Controls untuk Mobile Android -->
-<div class="controls-wrapper">
-    <!-- D-PAD / Panah Arah -->
-    <div class="dpad">
-        <div></div>
-        <button class="btn-ctrl" id="btnUp">⬆️</button>
-        <div></div>
-        <button class="btn-ctrl" id="btnLeft">⬅️</button>
-        <div></div>
-        <button class="btn-ctrl" id="btnRight">➡️</button>
-        <div></div>
-        <button class="btn-ctrl" id="btnDown">⬇️</button>
-        <div></div>
+<div class="game-wrapper">
+    <canvas id="fishCanvas" width="1000" height="650"></canvas>
+    
+    <!-- Virtual Touch Control Buttons -->
+    <div class="touch-controls">
+        <button class="btn-touch" id="btnCast">🎣 LEMPAR KAIL</button>
+        <button class="btn-touch btn-reel" id="btnReel">🌀 TARIK (HOLD)</button>
     </div>
 
-    <!-- Tombol Aksi & Kuis -->
-    <div class="action-buttons">
-        <button class="btn-quiz" id="btn1">1</button>
-        <button class="btn-quiz" id="btn2">2</button>
-        <button class="btn-quiz" id="btn3">3</button>
-        <br>
-        <button class="btn-space" id="btnAction">Mulai / Spasi</button>
+    <!-- Quiz Dialog Overlay -->
+    <div class="quiz-overlay" id="quizBox">
+        <h3 id="quizTitle" style="color:#00ffcc; margin:0; font-size:18px;">🎣 IKAN PANCASILA TERTANGKAP!</h3>
+        <p id="quizQuestion" style="font-size:15px; line-height:1.4; color:#e0e0e0;"></p>
+        <div id="quizOptions" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 </div>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
+const canvas = document.getElementById("fishCanvas");
 const ctx = canvas.getContext("2d");
 
-// Game State
-let state = 'START'; // START, PLAY, QUIZ, GAMEOVER, WIN
+// Responsive Scaling
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = 1000;
+    canvas.height = 650;
+}
+resizeCanvas();
+
+// Game Configuration & States
+let state = 'MENU'; // MENU, CASTING, WAITING, STRIKE, REELING, QUIZ, LEVEL_WIN, GAMEOVER
+let difficulty = 'MUDAN'; // MUDAH, SEDANG, TINGGI
+let currentLevel = 1; // 1: Danau, 2: Sungai, 3: Laut
 let score = 0;
-let hp = 3;
-let activeQuiz = null;
-let feedbackText = "";
-let feedbackTimer = 0;
+let caughtInLevel = 0;
 
-// Directional State (Mobile Touch Friendly)
-const moveDir = { up: false, down: false, left: false, right: false };
+// Settings Berdasarkan Tingkat Kesulitan
+const diffSettings = {
+    'MUDAH': { tensionDrop: 0.3, tensionGain: 0.8, targetTolerance: 35, fishPower: 0.4, timeLimit: 100 },
+    'SEDANG': { tensionDrop: 0.5, tensionGain: 1.1, targetTolerance: 25, fishPower: 0.7, timeLimit: 80 },
+    'TINGGI': { tensionDrop: 0.8, tensionGain: 1.5, targetTolerance: 18, fishPower: 1.1, timeLimit: 60 }
+};
 
-// Player Garuda
-const player = { x: 50, y: 230, w: 32, h: 32, speed: 4 };
+// Target Ikan per Level
+const levelTargets = { 1: 3, 2: 4, 3: 5 };
+const levelNames = { 1: "Danau Pancasila", 2: "Sungai Nusantara", 3: "Laut Garuda" };
 
-// Musuh (Hoaks / Disintegrasi)
-const enemies = [
-    { x: 220, y: 100, w: 26, h: 26, dx: 3.5, dy: 0, label: "HOAX" },
-    { x: 420, y: 380, w: 26, h: 26, dx: -3, dy: 2.5, label: "FITNAH" },
-    { x: 620, y: 150, w: 26, h: 26, dx: 0, dy: 4, label: "DISAGRE" },
-    { x: 300, y: 280, w: 26, h: 26, dx: 2.5, dy: -3, label: "HOAX" }
-];
+// Reel & Fishing Mechanics Variables
+let bobber = { x: 500, y: 380, targetY: 380, active: false };
+let tension = 50; // 0 to 100
+let reelProgress = 0; // 0 to 100%
+let isReeling = false;
+let biteTimer = 0;
+let activeFish = null;
+let currentQuestion = null;
 
-// Soal Edukasi Pancasila
+// Waves & Water Environment
+let waveOffset = 0;
+
+// Data Soal Fungsi Pancasila
 const questions = [
     {
-        sila: "1. Dasar Negara",
-        symbol: "⭐",
-        q: "Landasan utama dalam mengatur penyelenggaraan seluruh pemerintahan negara:",
-        opts: ["1. Dasar Negara", "2. Pandangan Hidup", "3. Perjanjian Luhur"],
+        sila: "Dasar Negara",
+        q: "Pancasila digunakan sebagai landasan utama dalam mengatus dan menyelenggarakan tata negara Indonesia. Fungsi ini dinamakan...",
+        opts: ["1. Dasar Negara", "2. Pandangan Hidup", "3. Kepribadian Bangsa"],
+        ans: 0
+    },
+    {
+        sila: "Pandangan Hidup",
+        q: "Pancasila menjadi petunjuk arah moral, etika, dan perilaku warga negara dalam kehidupan sehari-hari...",
+        opts: ["1. Sumber Hukum", "2. Pandangan Hidup Bangsa", "3. Cita-cita Bangsa"],
         ans: 1
     },
     {
-        sila: "2. Pandangan Hidup",
-        symbol: "⛓️",
-        q: "Pedoman moral & petunjuk arah perilaku seluruh rakyat sehari-hari:",
-        opts: ["1. Sumber Hukum", "2. Pandangan Hidup", "3. Cita-cita Bangsa"],
-        ans: 2
-    },
-    {
-        sila: "3. Jiwa Bangsa",
-        symbol: "🌳",
-        q: "Lahir bersamaan dengan keberadaan bangsa dan menjaga persatuan Indonesia:",
-        opts: ["1. Kepribadian Bangsa", "2. Jiwa Bangsa", "3. Sumber Hukum"],
-        ans: 2
-    },
-    {
-        sila: "4. Sumber Hukum",
-        symbol: "🐂",
-        q: "Setiap hukum/UU di Indonesia wajib berlandaskan dan tidak bertentangan dengan:",
-        opts: ["1. Sumber Segala Hukum", "2. Ideologi Terbuka", "3. Doktrin Politik"],
+        sila: "Jiwa Bangsa",
+        q: "Pancasila lahir bersamaan dengan adanya bangsa Indonesia dan berfungsi memberikan jiwa pemersatu...",
+        opts: ["1. Perjanjian Luhur", "2. Jiwa Bangsa Indonesia", "3. Ideologi Terbuka"],
         ans: 1
     },
     {
-        sila: "5. Kepribadian Bangsa",
-        symbol: "🌾",
-        q: "Memberikan ciri khas unik (gotong royong) yang membedakan dengan bangsa lain:",
-        opts: ["1. Cita-cita Bangsa", "2. Perjanjian Luhur", "3. Kepribadian Bangsa"],
-        ans: 3
+        sila: "Sumber dari Segala Sumber Hukum",
+        q: "Semua peraturan perundang-undangan di Indonesia tidak boleh bertentangan dengan nilai Pancasila...",
+        opts: ["1. Sumber dari Segala Sumber Hukum", "2. Dasar Negara", "3. Kepribadian Bangsa"],
+        ans: 0
+    },
+    {
+        sila: "Kepribadian Bangsa",
+        q: "Pancasila memberikan ciri khas unik (gotong royong, musyawarah) yang membedakan Indonesia dengan bangsa lain...",
+        opts: ["1. Cita-cita Bangsa", "2. Jiwa Bangsa", "3. Kepribadian Bangsa"],
+        ans: 2
+    },
+    {
+        sila: "Perjanjian Luhur",
+        q: "Pancasila disepakati oleh para pendiri bangsa (PPKI) sebagai kesepakatan final berbangsa...",
+        opts: ["1. Perjanjian Luhur Bangsa", "2. Pandangan Hidup", "3. Dasar Hukum"],
+        ans: 0
     }
 ];
 
-// Kristal Sila
-const crystalPositions = [
-    {x: 200, y: 90}, {x: 650, y: 100}, {x: 150, y: 400}, {x: 650, y: 400}, {x: 400, y: 230}
-];
-const crystals = crystalPositions.map((pos, idx) => ({
-    x: pos.x, y: pos.y, w: 28, h: 28, collected: false, q: questions[idx]
-}));
+// Touch & Click Event Listeners
+const btnCast = document.getElementById("btnCast");
+const btnReel = document.getElementById("btnReel");
+const quizBox = document.getElementById("quizBox");
 
-// Keyboard Event Handlers
-const keys = {};
-window.addEventListener("keydown", e => {
-    keys[e.key] = true;
-    handleInput(e.key);
+btnCast.addEventListener("click", castLine);
+
+// Touch Reel Control
+function startReel(e) { if(e) e.preventDefault(); isReeling = true; }
+function stopReel(e) { if(e) e.preventDefault(); isReeling = false; }
+
+btnReel.addEventListener("touchstart", startReel);
+btnReel.addEventListener("touchend", stopReel);
+btnReel.addEventListener("mousedown", startReel);
+btnReel.addEventListener("mouseup", stopReel);
+
+// Keyboard Spacebar Support
+window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        if (state === 'CASTING' || state === 'WAITING') return;
+        if (state === 'STRIKE') startReelingMechanic();
+        if (state === 'REELING') isReeling = true;
+    }
 });
-window.addEventListener("keyup", e => { keys[e.key] = false; });
+window.addEventListener("keyup", (e) => {
+    if (e.code === "Space") isReeling = false;
+});
 
-// Touch / Mobile Event Listener Binding
-function bindTouchBtn(btnId, actionStart, actionEnd) {
-    const el = document.getElementById(btnId);
-    el.addEventListener("touchstart", (e) => { e.preventDefault(); actionStart(); });
-    el.addEventListener("touchend", (e) => { e.preventDefault(); if(actionEnd) actionEnd(); });
-    el.addEventListener("mousedown", (e) => { e.preventDefault(); actionStart(); });
-    el.addEventListener("mouseup", (e) => { e.preventDefault(); if(actionEnd) actionEnd(); });
+function castLine() {
+    if (state === 'MENU' || state === 'LEVEL_WIN' || state === 'GAMEOVER') {
+        state = 'WAITING';
+        resetFishingState();
+    } else if (state === 'WAITING' && !bobber.active) {
+        bobber.active = true;
+        bobber.x = 450 + Math.random() * 200;
+        bobber.y = 350 + Math.random() * 100;
+        biteTimer = 120 + Math.floor(Math.random() * 180); // Wait 2-5 sec
+        btnCast.style.display = "none";
+    }
 }
 
-bindTouchBtn("btnUp", () => moveDir.up = true, () => moveDir.up = false);
-bindTouchBtn("btnDown", () => moveDir.down = true, () => moveDir.down = false);
-bindTouchBtn("btnLeft", () => moveDir.left = true, () => moveDir.left = false);
-bindTouchBtn("btnRight", () => moveDir.right = true, () => moveDir.right = false);
+function resetFishingState() {
+    bobber.active = false;
+    tension = 50;
+    reelProgress = 0;
+    btnCast.style.display = "block";
+    btnCast.innerText = "🎣 LEMPAR KAIL";
+    btnReel.style.display = "none";
+    quizBox.style.display = "none";
+}
 
-bindTouchBtn("btn1", () => handleInput('1'));
-bindTouchBtn("btn2", () => handleInput('2'));
-bindTouchBtn("btn3", () => handleInput('3'));
-bindTouchBtn("btnAction", () => handleInput(' '));
+function startReelingMechanic() {
+    state = 'REELING';
+    btnReel.style.display = "block";
+    btnCast.style.display = "none";
+}
 
-function handleInput(key) {
-    if ((state === 'START') && (key === ' ' || key === 'Spacebar')) {
-        state = 'PLAY';
-    } else if (state === 'QUIZ' && activeQuiz) {
-        let choice = 0;
-        if (key === '1') choice = 1;
-        if (key === '2') choice = 2;
-        if (key === '3') choice = 3;
+function triggerQuiz() {
+    state = 'QUIZ';
+    btnReel.style.display = "none";
+    
+    currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+    document.getElementById("quizQuestion").innerText = currentQuestion.q;
+    
+    const optsContainer = document.getElementById("quizOptions");
+    optsContainer.innerHTML = "";
+    
+    currentQuestion.opts.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "quiz-btn";
+        btn.innerText = opt;
+        btn.onclick = () => answerQuiz(idx);
+        optsContainer.appendChild(btn);
+    });
+    
+    quizBox.style.display = "flex";
+}
 
-        if (choice > 0) {
-            if (choice === activeQuiz.q.ans) {
-                score += 100;
-                activeQuiz.collected = true;
-                feedbackText = "BENAR! Kekuatan Sila Berhasil Diaktifkan! ✨";
+function answerQuiz(selectedIndex) {
+    quizBox.style.display = "none";
+    if (selectedIndex === currentQuestion.ans) {
+        score += 150;
+        caughtInLevel++;
+        if (caughtInLevel >= levelTargets[currentLevel]) {
+            if (currentLevel < 3) {
+                state = 'LEVEL_WIN';
             } else {
-                hp -= 1;
-                feedbackText = "SALAH! Jiwa Pancasila Melemahi! 💔";
+                state = 'VICTORY';
             }
-            feedbackTimer = 90;
-            state = 'PLAY';
-
-            if (crystals.every(c => c.collected)) state = 'WIN';
-            else if (hp <= 0) state = 'GAMEOVER';
+        } else {
+            state = 'WAITING';
+            resetFishingState();
         }
-    } else if ((state === 'GAMEOVER' || state === 'WIN') && (key === 'r' || key === 'R' || key === ' ')) {
-        resetGame();
+    } else {
+        // Jawaban Salah: Ikan Lepas
+        state = 'WAITING';
+        resetFishingState();
     }
 }
 
-function resetGame() {
-    player.x = 50; player.y = 230;
-    score = 0; hp = 3;
-    crystals.forEach(c => c.collected = false);
-    state = 'PLAY';
-}
-
+// Update Loop Logika Game
 function update() {
-    if (state === 'PLAY') {
-        // Player Movement (Keyboard & Virtual Touch D-Pad)
-        if (keys['ArrowLeft'] || keys['a'] || moveDir.left) player.x -= player.speed;
-        if (keys['ArrowRight'] || keys['d'] || moveDir.right) player.x += player.speed;
-        if (keys['ArrowUp'] || keys['w'] || moveDir.up) player.y -= player.speed;
-        if (keys['ArrowDown'] || keys['s'] || moveDir.down) player.y += player.speed;
+    waveOffset += 0.03;
 
-        // Batas Layar Arena
-        player.x = Math.max(15, Math.min(canvas.width - 45, player.x));
-        player.y = Math.max(55, Math.min(canvas.height - 45, player.y));
+    if (state === 'WAITING' && bobber.active) {
+        biteTimer--;
+        if (biteTimer <= 0) {
+            state = 'STRIKE';
+            btnCast.style.display = "block";
+            btnCast.innerText = "⚡ STRIKE! TARIK SEKARANG!";
+            btnCast.onclick = () => {
+                btnCast.onclick = castLine;
+                startReelingMechanic();
+            };
+        }
+    }
 
-        // Pergerakan Musuh
-        enemies.forEach(e => {
-            e.x += e.dx; e.y += e.dy;
-            if (e.x <= 15 || e.x >= canvas.width - 40) e.dx *= -1;
-            if (e.y <= 55 || e.y >= canvas.height - 40) e.dy *= -1;
+    if (state === 'REELING') {
+        const cfg = diffSettings[difficulty];
+        
+        // Dynamic Tension Logic
+        if (isReeling) {
+            tension += cfg.tensionGain;
+        } else {
+            tension -= cfg.tensionDrop;
+        }
 
-            // Tabrakan Musuh
-            if (player.x < e.x + e.w && player.x + player.w > e.x &&
-                player.y < e.y + e.h && player.y + player.h > e.y) {
-                hp -= 1;
-                player.x = 50; player.y = 230;
-                feedbackText = "⚠️ Terkena Serangan " + e.label + "! HP -1";
-                feedbackTimer = 70;
-                if (hp <= 0) state = 'GAMEOVER';
-            }
-        });
+        // Random Fish Tug (Ikan Melawan)
+        tension += (Math.random() - 0.45) * cfg.fishPower * 2.5;
 
-        // Tabrakan Kristal
-        crystals.forEach(c => {
-            if (!c.collected && player.x < c.x + c.w && player.x + player.w > c.x &&
-                player.y < c.y + c.h && player.y + player.h > c.y) {
-                activeQuiz = c;
-                state = 'QUIZ';
-            }
-        });
+        // Keep inside Sweet Zone (40 - 70 tension)
+        if (tension >= 35 && tension <= 75) {
+            reelProgress += 0.35; // Tarikan berhasil bertambah
+        }
+
+        // Tali Putus (Tension > 95) atau Ikan Lepas (Tension < 10)
+        if (tension > 98 || tension < 5) {
+            // Reeling Failed
+            state = 'WAITING';
+            resetFishingState();
+        }
+
+        // Catch Success
+        if (reelProgress >= 100) {
+            triggerQuiz();
+        }
     }
 }
 
-// Draw Pixel Art / Cyber Graphics
+// Render Engine (Visual Realistic Landscape, Water Reflection, Tension Gauge)
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Grid Cyber Background
-    ctx.strokeStyle = "rgba(69, 243, 255, 0.05)";
-    ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    // 1. Sky Gradient & Sun/Moon
+    let skyGrad = ctx.createLinearGradient(0, 0, 0, 300);
+    if (currentLevel === 1) { // Danau (Sunset)
+        skyGrad.addColorStop(0, '#1a0b2e');
+        skyGrad.addColorStop(0.6, '#8c2f5e');
+        skyGrad.addColorStop(1, '#f8664b');
+    } else if (currentLevel === 2) { // Sungai (Pagi Hari)
+        skyGrad.addColorStop(0, '#0f2027');
+        skyGrad.addColorStop(0.6, '#203a43');
+        skyGrad.addColorStop(1, '#2c5364');
+    } else { // Laut (Night Cyber Glow)
+        skyGrad.addColorStop(0, '#050515');
+        skyGrad.addColorStop(0.6, '#0a1128');
+        skyGrad.addColorStop(1, '#1c2541');
     }
-    for (let y = 0; y < canvas.height; y += 40) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, canvas.width, 300);
+
+    // Sun / Moon Reflection
+    ctx.fillStyle = "rgba(255, 230, 150, 0.6)";
+    ctx.beginPath();
+    ctx.arc(800, 150, 45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Realistic Water Shader Waves
+    let waterGrad = ctx.createLinearGradient(0, 300, 0, canvas.height);
+    waterGrad.addColorStop(0, 'rgba(0, 105, 148, 0.9)');
+    waterGrad.addColorStop(0.5, 'rgba(0, 55, 90, 0.95)');
+    waterGrad.addColorStop(1, 'rgba(2, 20, 40, 1)');
+    ctx.fillStyle = waterGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 300);
+    for (let x = 0; x <= canvas.width; x += 20) {
+        let y = 300 + Math.sin(x * 0.015 + waveOffset) * 6;
+        ctx.lineTo(x, y);
+    }
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.lineTo(0, canvas.height);
+    ctx.closePath();
+    ctx.fill();
+
+    // Water Surface Highlights
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        let yOffset = 320 + i * 40;
+        for (let x = 0; x <= canvas.width; x += 30) {
+            let y = yOffset + Math.sin(x * 0.02 + waveOffset + i) * 4;
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
     }
 
-    if (state === 'START') {
-        // Layar Judul Arcade
-        ctx.fillStyle = "#FFD700";
-        ctx.font = "bold 34px 'Courier New'";
+    // 3. Wooden Dock & Fishing Rod
+    ctx.fillStyle = "#2c1d11";
+    ctx.fillRect(0, 480, 220, 170); // Dermaga Kayu
+    ctx.fillStyle = "#1e130a";
+    ctx.fillRect(0, 510, 220, 10); // Detail Kayu
+
+    // Rod (Pancingan Carbon Fiber)
+    ctx.strokeStyle = "#d4af37";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(80, 520);
+    
+    // Bending Rod Curve during reeling
+    let rodTipX = 320;
+    let rodTipY = 220 + (state === 'REELING' ? (tension * 0.8) : 0);
+    ctx.quadraticCurveTo(200, 350, rodTipX, rodTipY);
+    ctx.stroke();
+
+    // Fishing Line (Senar Pancing)
+    if (bobber.active || state === 'REELING') {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(rodTipX, rodTipY);
+        ctx.lineTo(bobber.x, bobber.y);
+        ctx.stroke();
+
+        // Pelampung (Bobber)
+        ctx.fillStyle = "#ff0000";
+        ctx.beginPath();
+        ctx.arc(bobber.x, bobber.y + (state === 'STRIKE' ? Math.sin(waveOffset * 10) * 8 : 0), 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(bobber.x - 6, bobber.y - 2, 12, 4);
+    }
+
+    // 4. Tension & Progress Meters (Mode Reeling)
+    if (state === 'REELING') {
+        // Meter Panel
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(350, 40, 300, 110);
+        ctx.strokeStyle = "#00d2ff";
+        ctx.strokeRect(350, 40, 300, 110);
+
+        // Tension Bar (Indikator Ketegangan Senar)
+        ctx.fillStyle = "#fff";
+        ctx.font = "12px sans-serif";
+        ctx.fillText("KETEGANGAN SENAR (Jaga di Area Hijau!)", 360, 60);
+
+        ctx.fillStyle = "#333";
+        ctx.fillRect(360, 68, 280, 20);
+
+        // Safe Zone (Green)
+        ctx.fillStyle = "#00ff66";
+        ctx.fillRect(360 + (35 * 2.8), 68, (40 * 2.8), 20);
+
+        // Tension Pointer
+        ctx.fillStyle = tension > 75 || tension < 35 ? "#ff0055" : "#ffffff";
+        ctx.fillRect(360 + (tension * 2.8) - 3, 64, 6, 28);
+
+        // Progress Reel Bar
+        ctx.fillStyle = "#fff";
+        ctx.fillText("JARA TANGKAPAN: " + Math.floor(reelProgress) + "%", 360, 108);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(360, 115, 280, 12);
+        ctx.fillStyle = "#00d2ff";
+        ctx.fillRect(360, 115, (reelProgress * 2.8), 12);
+    }
+
+    // 5. Top UI Header
+    ctx.fillStyle = "rgba(10, 20, 35, 0.85)";
+    ctx.fillRect(15, 15, canvas.width - 30, 45);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.strokeRect(15, 15, canvas.width - 30, 45);
+
+    ctx.fillStyle = "#00ffcc";
+    ctx.font = "bold 16px 'Segoe UI', sans-serif";
+    ctx.fillText("📍 " + levelNames[currentLevel], 30, 43);
+
+    ctx.fillStyle = "#FFD700";
+    ctx.fillText("SKOR: " + score, 320, 43);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("IKAN: " + caughtInLevel + "/" + levelTargets[currentLevel], 520, 43);
+
+    ctx.fillStyle = "#ff9900";
+    ctx.fillText("KESULITAN: " + difficulty, 750, 43);
+
+    // 6. State Overlays (Menu & Level Selection)
+    if (state === 'MENU') {
+        ctx.fillStyle = "rgba(5, 11, 20, 0.88)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         ctx.textAlign = "center";
-        ctx.fillText("PETUALANGAN GARUDA", canvas.width/2, 170);
-        
-        ctx.fillStyle = "#45f3ff";
-        ctx.font = "bold 18px 'Courier New'";
-        ctx.fillText("🛡️ PENJAGA FUNGSI PANCASILA 🛡️", canvas.width/2, 220);
+        ctx.fillStyle = "#00d2ff";
+        ctx.font = "bold 36px sans-serif";
+        ctx.fillText("🎣 MANCING PANCASILA 🎣", canvas.width/2, 180);
+
+        ctx.fillStyle = "#e0e0e0";
+        ctx.font = "16px sans-serif";
+        ctx.fillText("Pilih Tingkat Kesulitan Memancing:", canvas.width/2, 240);
+
+        // Draw Difficulty Buttons on Canvas
+        drawCanvasBtn(canvas.width/2 - 220, 280, 130, 45, "MUDAH", difficulty === 'MUDAH' ? '#00ff66' : '#222');
+        drawCanvasBtn(canvas.width/2 - 65, 280, 130, 45, "SEDANG", difficulty === 'SEDANG' ? '#FFD700' : '#222');
+        drawCanvasBtn(canvas.width/2 + 90, 280, 130, 45, "TINGGI", difficulty === 'TINGGI' ? '#ff0055' : '#222');
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "16px 'Courier New'";
-        ctx.fillText("Tekan [MULAI] atau SPASI untuk Memulai", canvas.width/2, 330);
-        ctx.font = "13px 'Courier New'";
-        ctx.fillText("Gunakan D-Pad Virtual di bawah untuk bergerak!", canvas.width/2, 370);
-    } 
-    else if (state === 'PLAY' || state === 'QUIZ' || state === 'GAMEOVER' || state === 'WIN') {
-        // Top Neon HUD
-        ctx.fillStyle = "#1f2833";
-        ctx.fillRect(10, 8, canvas.width - 20, 38);
-        ctx.strokeStyle = "#45f3ff";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(10, 8, canvas.width - 20, 38);
-
+        ctx.font = "15px sans-serif";
+        ctx.fillText("Tekan [LEMPAR KAIL] di bawah untuk mulai memancing!", canvas.width/2, 420);
         ctx.textAlign = "left";
-        ctx.fillStyle = "#FFD700";
-        ctx.font = "bold 16px 'Courier New'";
-        ctx.fillText("SKOR: " + score, 25, 33);
+    }
 
-        ctx.fillStyle = "#ff0055";
-        ctx.fillText("HP: " + "❤️".repeat(Math.max(0, hp)), 300, 33);
-
+    if (state === 'LEVEL_WIN') {
+        ctx.fillStyle = "rgba(5, 11, 20, 0.9)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
         ctx.fillStyle = "#00ff66";
-        const collectedCount = crystals.filter(c => c.collected).length;
-        ctx.fillText("KRISTAL: " + collectedCount + "/5", 610, 33);
-
-        // Border Arena Oyun
-        ctx.strokeStyle = "#ff0055";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(10, 50, canvas.width - 20, canvas.height - 60);
-
-        // Render Kristal Pancasila (Glow & Icon)
-        crystals.forEach(c => {
-            if (!c.collected) {
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = "#FFD700";
-                ctx.fillStyle = "#FFD700";
-                ctx.beginPath();
-                ctx.arc(c.x + c.w/2, c.y + c.h/2, 14, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                // Simbol Sila
-                ctx.fillStyle = "#000";
-                ctx.font = "14px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText(c.q.symbol, c.x + c.w/2, c.y + c.h/2 + 5);
-            }
-        });
-
-        // Render Musuh (Pixel Monster Red/Purple Glow)
-        enemies.forEach(e => {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#ff0055";
-            ctx.fillStyle = "#ff0055";
-            ctx.fillRect(e.x, e.y, e.w, e.h);
-            ctx.shadowBlur = 0;
-
-            // Label Hoaks
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 10px 'Courier New'";
-            ctx.textAlign = "center";
-            ctx.fillText(e.label, e.x + e.w/2, e.y - 4);
-        });
-
-        // Render Player (Garuda Kesatria)
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = "#00ff66";
-        ctx.fillStyle = "#00ff66";
-        ctx.fillRect(player.x, player.y, player.w, player.h);
-        
-        // Perisai Garuda
-        ctx.fillStyle = "#ff0055";
-        ctx.fillRect(player.x + 8, player.y + 8, 16, 16);
+        ctx.font = "bold 32px sans-serif";
+        ctx.fillText("🎉 STAGE " + currentLevel + " SELESAI! 🎉", canvas.width/2, 230);
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(player.x + 12, player.y + 12, 8, 8);
-        ctx.shadowBlur = 0;
+        ctx.font = "18px sans-serif";
+        ctx.fillText("Semua Ikan Pancasila di lokasi ini berhasil ditangkap!", canvas.width/2, 280);
+        
+        drawCanvasBtn(canvas.width/2 - 100, 340, 200, 50, "LANJUT LEVEL " + (currentLevel+1), "#00d2ff");
+        ctx.textAlign = "left";
+    }
 
-        // Feedback Notifikasi Teks
-        if (feedbackTimer > 0) {
-            ctx.fillStyle = "#FFD700";
-            ctx.font = "bold 15px 'Courier New'";
-            ctx.textAlign = "center";
-            ctx.fillText(feedbackText, canvas.width/2, canvas.height - 20);
-            feedbackTimer--;
-        }
-
-        // Popup Modal Kuis
-        if (state === 'QUIZ' && activeQuiz) {
-            ctx.fillStyle = "rgba(11, 12, 16, 0.95)";
-            ctx.fillRect(40, 70, canvas.width - 80, 360);
-            ctx.strokeStyle = "#FFD700";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, 70, canvas.width - 80, 360);
-
-            ctx.textAlign = "left";
-            ctx.fillStyle = "#FFD700";
-            ctx.font = "bold 20px 'Courier New'";
-            ctx.fillText("📜 UJIAN SILA: " + activeQuiz.q.sila, 60, 110);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "14px 'Courier New'";
-            ctx.fillText(activeQuiz.q.q, 60, 155);
-
-            activeQuiz.q.opts.forEach((opt, idx) => {
-                ctx.fillStyle = "#45f3ff";
-                ctx.font = "bold 16px 'Courier New'";
-                ctx.fillText(opt, 80, 220 + (idx * 45));
-            });
-
-            ctx.fillStyle = "#FFD700";
-            ctx.font = "13px 'Courier New'";
-            ctx.fillText("Tekan tombol [1], [2], atau [3] di bawah untuk menjawab!", 60, 390);
-        }
-
-        // Layar Game Over
-        if (state === 'GAMEOVER') {
-            ctx.fillStyle = "rgba(11, 12, 16, 0.9)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#ff0055";
-            ctx.font = "bold 38px 'Courier New'";
-            ctx.fillText("GAME OVER", canvas.width/2, 200);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "16px 'Courier New'";
-            ctx.fillText("Nilai-nilai Pancasila Terancam Hoaks!", canvas.width/2, 250);
-            ctx.fillText("Tekan tombol [MULAI] atau [R] untuk Coba Lagi", canvas.width/2, 320);
-        }
-
-        // Layar Menang (Win)
-        if (state === 'WIN') {
-            ctx.fillStyle = "rgba(11, 12, 16, 0.9)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#FFD700";
-            ctx.font = "bold 34px 'Courier New'";
-            ctx.fillText("🏆 KEMENANGAN MUTLAK! 🏆", canvas.width/2, 200);
-            ctx.fillStyle = "#45f3ff";
-            ctx.font = "16px 'Courier New'";
-            ctx.fillText("Kamu Berhasil Menjaga Fungsi Pancasila! Skor: " + score, canvas.width/2, 250);
-            ctx.fillText("Tekan tombol [MULAI] atau [R] untuk Main Lagi", canvas.width/2, 320);
-        }
+    if (state === 'VICTORY') {
+        ctx.fillStyle = "rgba(5, 11, 20, 0.95)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 36px sans-serif";
+        ctx.fillText("🏆 PEMANCING PANCASILA SEJATI! 🏆", canvas.width/2, 220);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "18px sans-serif";
+        ctx.fillText("Kamu menguasai seluruh lokasi & memahami fungsi Pancasila! Skor: " + score, canvas.width/2, 280);
+        
+        drawCanvasBtn(canvas.width/2 - 100, 350, 200, 50, "MAIN LAGI", "#00ff66");
+        ctx.textAlign = "left";
     }
 }
 
-function loop() {
+function drawCanvasBtn(x, y, w, h, text, bg) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText(text, x + w/2, y + h/2 + 5);
+}
+
+// Canvas Click Handler untuk Menu
+canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+    if (state === 'MENU') {
+        if (clickY >= 280 && clickY <= 325) {
+            if (clickX >= canvas.width/2 - 220 && clickX <= canvas.width/2 - 90) difficulty = 'MUDAH';
+            if (clickX >= canvas.width/2 - 65 && clickX <= canvas.width/2 + 65) difficulty = 'SEDANG';
+            if (clickX >= canvas.width/2 + 90 && clickX <= canvas.width/2 + 220) difficulty = 'TINGGI';
+        }
+    } else if (state === 'LEVEL_WIN') {
+        if (clickX >= canvas.width/2 - 100 && clickX <= canvas.width/2 + 100 && clickY >= 340 && clickY <= 390) {
+            currentLevel++;
+            caughtInLevel = 0;
+            state = 'WAITING';
+            resetFishingState();
+        }
+    } else if (state === 'VICTORY') {
+        if (clickX >= canvas.width/2 - 100 && clickX <= canvas.width/2 + 100 && clickY >= 350 && clickY <= 400) {
+            currentLevel = 1;
+            caughtInLevel = 0;
+            score = 0;
+            state = 'MENU';
+            resetFishingState();
+        }
+    }
+});
+
+function gameLoop() {
     update();
     draw();
-    requestAnimationFrame(loop);
+    requestAnimationFrame(gameLoop);
 }
 
-loop();
+gameLoop();
 </script>
 
 </body>
 </html>
 """
 
-# Render Game ke Streamlit
-components.html(game_code, height=690)
+# Render Game UI Fullscreen ke Streamlit
+components.html(game_code, height=720, scrolling=False)

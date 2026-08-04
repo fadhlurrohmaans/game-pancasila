@@ -19,7 +19,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
-st.caption("Gunakan strategi terbaikmu! Menukar tanpa match akan mengurangi langkah, dan salah menjawab soal akan mengurangi nyawa.")
+st.caption("Selesaikan target soal sebelum waktu level habis, jangan sampai kehabisan langkah atau nyawa!")
 
 # Single Bundle Engine HTML5 + CSS + JavaScript
 game_html = """
@@ -40,7 +40,7 @@ game_html = """
         color: white;
         border-radius: 16px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-        min-height: 640px;
+        min-height: 650px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -65,16 +65,16 @@ game_html = """
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 490px;
+        max-width: 500px;
         background: rgba(0,0,0,0.5);
-        padding: 10px 12px;
+        padding: 8px 10px;
         border-radius: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         border: 1px solid rgba(255, 215, 0, 0.2);
     }
-    .stat-item { text-align: center; }
-    .stat-title { font-size: 11px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
-    .stat-value { font-size: 16px; font-weight: bold; }
+    .stat-item { text-align: center; flex: 1; }
+    .stat-title { font-size: 10px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
+    .stat-value { font-size: 14px; font-weight: bold; }
 
     /* Gem Grid */
     #grid {
@@ -138,7 +138,7 @@ game_html = """
         margin: 5px;
     }
     .btn:hover { transform: translateY(-2px); background: linear-gradient(45deg, #f44336, #d32f2f); }
-    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 260px; }
+    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 270px; }
     .btn-diff.selected { background: #ffd700; color: #800000; font-weight: bold; }
 
     .opt-btn {
@@ -162,17 +162,17 @@ game_html = """
     <h2>🦅 Nusantara Gem Crush</h2>
     <p style="font-size: 13px;">Cocokkan Simbol Pancasila & Jawab Kuisnya!</p>
     
-    <div style="margin: 15px 0;">
-        <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mudah (20s Soal | 25 Langkah | 3 ❤️)</button><br>
-        <button class="btn btn-diff" onclick="setDiff('sedang', this)">🟡 Sedang (12s Soal | 20 Langkah | 3 ❤️)</button><br>
-        <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Tinggi (7s Soal | 15 Langkah | 2 ❤️)</button>
+    <div style="margin: 10px 0;">
+        <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mode Normal (25 Langkah | 3 ❤️)</button><br>
+        <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Mode Tantangan (15 Langkah | 2 ❤️)</button>
     </div>
 
-    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 15px; text-align: left;">
-        ⚠️ <b>Aturan Baru:</b><br>
-        • Menukar tanpa hasil match <u>TETAP mengurangi langkah</u>!<br>
-        • Jawaban kuis salah / kehabisan waktu akan <u>mengurangi 1 Nyawa (❤️)</u>.<br>
-        • Kehabisan langkah atau nyawa = <b>Game Over</b>.
+    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; text-align: left;">
+        ⏱️ <b>Batasan Waktu Level & Soal:</b><br>
+        • Level 1: <b>5 Menit</b> (Target: 5 Soal | 60s/soal)<br>
+        • Level 2: <b>4 Menit</b> (Target: 8 Soal | 30s/soal)<br>
+        • Level 3: <b>3 Menit</b> (Target: 10 Soal | 18s/soal)<br>
+        ⚠️ Waktu Habis / Nyawa Habis / Langkah Habis = <b>GAME OVER</b>!
     </div>
 
     <button class="btn" style="width: 80%; font-size: 17px;" onclick="startGame()">Mulai Petualangan 🚀</button>
@@ -188,6 +188,10 @@ game_html = """
         <div class="stat-item">
             <div class="stat-title">Lvl</div>
             <div class="stat-value" id="val-level" style="color:#ffd700;">1</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-title">Waktu Level</div>
+            <div class="stat-value" id="val-level-time" style="color:#ff9f43;">05:00</div>
         </div>
         <div class="stat-item">
             <div class="stat-title">Skor</div>
@@ -219,7 +223,7 @@ game_html = """
 <!-- SCREEN 3: LEVEL COMPLETE -->
 <div class="card hidden" id="screen-level-win">
     <h2>🎉 Level Selesai!</h2>
-    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan level ini.</p>
+    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan level ini tepat waktu.</p>
     <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
     <button class="btn" id="btn-next-lvl" onclick="nextLevel()">Lanjut Level Berikutnya ➡️</button>
 </div>
@@ -227,7 +231,7 @@ game_html = """
 <!-- SCREEN 4: GAME OVER / TAMAT -->
 <div class="card hidden" id="screen-end">
     <h2 id="end-title">💥 GAME OVER</h2>
-    <p id="end-desc" style="font-size: 14px; color: #ff6b6b; font-weight: bold;">Kehabisan Langkah / Nyawa!</p>
+    <p id="end-desc" style="font-size: 14px; color: #ff6b6b; font-weight: bold;">Gagal menyelesaikan tantangan!</p>
     <div style="font-size: 36px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0 Poin</div>
     <div style="font-weight: bold; color: #4caf50; font-size: 16px; margin-bottom: 15px;" id="final-rank"></div>
     <button class="btn" onclick="resetGame()">Main Lagi 🔄</button>
@@ -237,6 +241,20 @@ game_html = """
     const width = 6;
     const gems = ['⭐', '⛓️', '🌳', '🐂', '🌾', '🦅'];
     
+    // Waktu Level dalam detik (Lvl 1: 5m/300s, Lvl 2: 4m/240s, Lvl 3: 3m/180s)
+    const levelTimeLimits = {
+        1: 300,
+        2: 240,
+        3: 180
+    };
+
+    // Waktu per Soal Kuis dalam detik (Lvl 1: 60s, Lvl 2: 30s, Lvl 3: 18s)
+    const questionTimeLimits = {
+        1: 60,
+        2: 30,
+        3: 18
+    };
+
     // Database Soal Pancasila per Level
     const questionsDB = {
         1: [
@@ -253,7 +271,8 @@ game_html = """
             { q: "Menjenguk teman sakit dan saling mencintai sesama manusia adalah Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 4", "Sila 5"], ans: 1 },
             { q: "Sikap adil dan menghargai hak-hak orang lain sesuai dengan Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
             { q: "Bangga menggunakan bahasa nasional Indonesia merupakan wujud Sila ke-...", opt: ["Sila 1", "Sila 3", "Sila 4", "Sila 5"], ans: 1 },
-            { q: "Suka bekerja keras dan tidak bergaya hidup mewah merupakan pengamalan Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 }
+            { q: "Suka bekerja keras dan tidak bergaya hidup mewah merupakan pengamalan Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
+            { q: "Menjaga keseimbangan antara hak dan kewajiban merupakan sikap Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 }
         ],
         3: [
             { q: "Pancasila secara resmi disahkan sebagai Dasar Negara pada tanggal...", opt: ["17 Agustus 1945", "18 Agustus 1945", "1 Juni 1945", "22 Juni 1945"], ans: 1 },
@@ -263,13 +282,15 @@ game_html = """
             { q: "Pancasila sebagai 'Ideologi Terbuka' bermakna...", opt: ["Bebas diubah kapan saja", "Dapat menyesuaikan zaman tanpa mengubah nilai dasar", "Menerima semua budaya asing", "Tidak memiliki hukum mengikat"], ans: 1 },
             { q: "Sidang BPUPKI Pertama berfokus membahas...", opt: ["Teknis Proklamasi", "Rumusan Dasar Negara", "Pemilihan Presiden", "Wilayah Negara"], ans: 1 },
             { q: "Kedudukan Pancasila sebagai 'Sumber dari segala sumber hukum' ditetapkan dalam...", opt: ["Ketetapan MPR", "UUD 1945", "Keputusan Presiden", "Peraturan Pemerintah"], ans: 0 },
-            { q: "Penetapan Hari Lahir Pancasila diperingati setiap tanggal...", opt: ["1 Juni", "17 Agustus", "1 Oktober", "28 Oktober"], ans: 0 }
+            { q: "Penetapan Hari Lahir Pancasila diperingati setiap tanggal...", opt: ["1 Juni", "17 Agustus", "1 Oktober", "28 Oktober"], ans: 0 },
+            { q: "Tokoh yang menyampaikan usulan Dasar Negara selain Ir. Soekarno adalah...", opt: ["Moh. Yamin & Dr. Soepomo", "Sutan Sjahrir & Tan Malaka", "Moh. Hatta & Bung Tomo", "Ki Hajar Dewantara"], ans: 0 },
+            { q: "Panitia Sembilan dibentuk setelah sidang BPUPKI Pertama untuk...", opt: ["Menyusun Teks Proklamasi", "Menyempurnakan rumusan Dasar Negara", "Memilih Presiden & Wapres", "Membentuk TNI"], ans: 1 }
         ]
     };
 
     // Game Variables
     let selectedDiff = 'mudah';
-    let timePerQuestion = 20;
+    let timePerQuestion = 60;
     let initialMoves = 25;
     let maxLives = 3;
     
@@ -280,20 +301,28 @@ game_html = """
     let questionsAnswered = 0;
     let targetQuestions = 5;
     
+    let levelTimeLeft = 300;
+    let levelTimerInterval = null;
+    let quizTimerInterval = null;
+
     let grid = [];
     let board = document.getElementById('grid');
     let selectedTile = null;
     let isProcessing = false;
-    let timerInterval = null;
 
     function setDiff(diff, btn) {
         selectedDiff = diff;
         document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
 
-        if (diff === 'mudah') { timePerQuestion = 20; initialMoves = 25; maxLives = 3; }
-        else if (diff === 'sedang') { timePerQuestion = 12; initialMoves = 20; maxLives = 3; }
-        else if (diff === 'tinggi') { timePerQuestion = 7; initialMoves = 15; maxLives = 2; }
+        if (diff === 'mudah') { initialMoves = 25; maxLives = 3; }
+        else if (diff === 'tinggi') { initialMoves = 15; maxLives = 2; }
+    }
+
+    function formatTime(seconds) {
+        let mins = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
     function startGame() {
@@ -307,12 +336,33 @@ game_html = """
     function initLevel() {
         moves = initialMoves;
         questionsAnswered = 0;
+        
+        // Setting Target Soal & Waktu per Soal sesuai Level
         if (currentLevel === 1) targetQuestions = 5;
         else if (currentLevel === 2) targetQuestions = 8;
-        else if (currentLevel === 3) targetQuestions = 12;
+        else if (currentLevel === 3) targetQuestions = 10;
 
+        timePerQuestion = questionTimeLimits[currentLevel];
+        levelTimeLeft = levelTimeLimits[currentLevel];
+        
+        startLevelTimer();
         updateUI();
         createBoard();
+    }
+
+    function startLevelTimer() {
+        clearInterval(levelTimerInterval);
+        levelTimerInterval = setInterval(() => {
+            levelTimeLeft--;
+            document.getElementById('val-level-time').innerText = formatTime(levelTimeLeft);
+
+            if (levelTimeLeft <= 0) {
+                clearInterval(levelTimerInterval);
+                clearInterval(quizTimerInterval);
+                document.getElementById('quiz-modal').classList.add('hidden');
+                gameOver("⏳ Waktu Level Habis! Kamu tidak berhasil menyelesaikan level tepat waktu.");
+            }
+        }, 1000);
     }
 
     function updateUI() {
@@ -320,6 +370,7 @@ game_html = """
         document.getElementById('val-score').innerText = score;
         document.getElementById('val-moves').innerText = moves;
         document.getElementById('val-target').innerText = `${questionsAnswered}/${targetQuestions}`;
+        document.getElementById('val-level-time').innerText = formatTime(levelTimeLeft);
         
         // Render Hearts
         let heartStr = "";
@@ -348,7 +399,7 @@ game_html = """
     }
 
     function selectTile() {
-        if (isProcessing || moves <= 0 || lives <= 0) return;
+        if (isProcessing || moves <= 0 || lives <= 0 || levelTimeLeft <= 0) return;
 
         if (!selectedTile) {
             selectedTile = this;
@@ -375,16 +426,15 @@ game_html = """
                 setTimeout(() => {
                     let matchSymbol = checkAndClearMatches();
                     if (!matchSymbol) {
-                        // JIKA TIDAK MATCH: Kembalikan posisi permata, TAPI moves TIDAK dikembalikan!
+                        // SWAP GAGAL: Kembalikan permata, moves tetap berkurang
                         swapGems(selectedTile, this);
                         updateUI();
 
-                        // Cek jika langkah habis setelah swap gagal
                         if (moves <= 0) {
                             gameOver("💥 Langkah Kamu Habis! Hati-hati menukar permata tanpa match.");
                         }
                     } else {
-                        // JIKA MATCH: Panggil Kuis!
+                        // MATCH BERHASIL: Panggil Kuis
                         triggerQuiz(matchSymbol);
                     }
                     if (selectedTile) selectedTile.classList.remove('selected');
@@ -462,7 +512,7 @@ game_html = """
         let qList = questionsDB[currentLevel];
         let randomQ = qList[Math.floor(Math.random() * qList.length)];
 
-        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB BENAR UNTUK BONUS SKOR + MOVES`;
+        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB BENAR (${timePerQuestion}s) UNTUK BONUS SKOR + MOVES`;
         document.getElementById('quiz-question').innerText = randomQ.q;
         
         let optsDiv = document.getElementById('quiz-options');
@@ -487,29 +537,29 @@ game_html = """
         let totalSteps = (timePerQuestion * 1000) / step;
         let currentStep = 0;
 
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
+        clearInterval(quizTimerInterval);
+        quizTimerInterval = setInterval(() => {
             currentStep++;
             let pct = Math.max(0, 100 - (currentStep / totalSteps) * 100);
             timerBar.style.width = pct + '%';
 
             if (pct <= 0) {
-                clearInterval(timerInterval);
+                clearInterval(quizTimerInterval);
                 handleQuizAnswer(false, null);
             }
         }, step);
     }
 
     function handleQuizAnswer(isCorrect, btn) {
-        clearInterval(timerInterval);
+        clearInterval(quizTimerInterval);
         if (btn) btn.classList.add(isCorrect ? 'correct' : 'wrong');
 
         if (isCorrect) {
             score += 150;
-            moves += 2; // Bonus +2 langkah jika benar
+            moves += 2; // Bonus +2 langkah
             questionsAnswered++;
         } else {
-            lives--; // NYAWA BERKURANG JIKA SALAH / WAKTU HABIS
+            lives--; // Nyawa berkurang jika salah/kehabisan waktu
         }
 
         updateUI();
@@ -519,9 +569,8 @@ game_html = """
             fillBoard();
             isProcessing = false;
 
-            // CEK SYARAT GAME OVER ATAU MENANG
             if (lives <= 0) {
-                gameOver("💔 Nyawa Kamu Habis! Jawab soal kuis dengan lebih teliti.");
+                gameOver("💔 Nyawa Kamu Habis! Jawab soal kuis dengan lebih cermat.");
             } else if (questionsAnswered >= targetQuestions) {
                 levelWin();
             } else if (moves <= 0) {
@@ -531,6 +580,7 @@ game_html = """
     }
 
     function levelWin() {
+        clearInterval(levelTimerInterval);
         if (currentLevel < 3) {
             showScreen('screen-level-win');
             document.getElementById('win-score').innerText = `${score} Poin`;
@@ -547,6 +597,9 @@ game_html = """
     }
 
     function gameOver(msg, isVictory = false) {
+        clearInterval(levelTimerInterval);
+        clearInterval(quizTimerInterval);
+
         showScreen('screen-end');
         document.getElementById('end-title').innerText = isVictory ? "🏆 Champion Pancasila!" : "💥 GAME OVER";
         document.getElementById('end-desc').innerText = msg;
@@ -561,6 +614,8 @@ game_html = """
     }
 
     function resetGame() {
+        clearInterval(levelTimerInterval);
+        clearInterval(quizTimerInterval);
         showScreen('screen-start');
     }
 
@@ -577,13 +632,16 @@ game_html = """
 """
 
 # Render Game di Streamlit
-components.html(game_html, height=660, scrolling=False)
+components.html(game_html, height=670, scrolling=False)
 
 # Panduan Petualangan
-with st.expander("🎮 Cara Bermain & Aturan Baru"):
+with st.expander("🎮 Aturan Permainan & Batasan Waktu"):
     st.write("""
-    - **Sistem Nyawa (❤️):** Kamu memiliki 3 Nyawa. Jika salah menjawab kuis atau waktu habis, **Nyawa akan berkurang 1**.
-    - **Langkah Berkurang Saat Swap Gagal:** Setiap kali menukar permata, **1 Langkah langsung berkurang** meskipun penukaran tersebut *tidak menghasilkan match*.
-    - **Bonus Langkah (+2 Moves):** Menjawab soal kuis dengan **Benar** memberikan bonus **+2 Langkah** tambahan dan **+150 Skor**!
-    - **Game Over:** Terjadi jika **Nyawa Habis (0 ❤️)** atau **Langkah Habis (0 Moves)**.
+    - **Batasan Waktu Level & Soal:**
+      - **Level 1:** ⏳ 5 Menit — Target: **5 Soal** (Waktu Soal: **60 Detik/soal**)
+      - **Level 2:** ⏳ 4 Menit — Target: **8 Soal** (Waktu Soal: **30 Detik/soal**)
+      - **Level 3:** ⏳ 3 Menit — Target: **10 Soal** (Waktu Soal: **18 Detik/soal**)
+    - **Sistem Nyawa (❤️):** Memiliki 2–3 Nyawa. Salah kuis atau kehabisan waktu per soal = **-1 Nyawa**.
+    - **Sistem Langkah:** Swap gagal tanpa match **tetap mengurangi 1 langkah**. Menjawab kuis dengan benar memberikan bonus **+2 Langkah**.
+    - **Kondisi Game Over:** Terjadi jika **Waktu Level Habis (00:00)**, **Nyawa Habis (0 ❤️)**, atau **Langkah Habis (0 Moves)**.
     """)

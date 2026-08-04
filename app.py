@@ -318,7 +318,7 @@ game_html = """
     const questionsDB = {
         1: [
             { q: "Sila Pertama Pancasila disimbolkan dengan Permata Bintang...", opt: ["Topaz Emas", "Rantai Emas", "Pohon Beringin", "Kepala Banteng"], ans: 0 },
-            { q: "Pohon Beringin (Zamrud) melambangkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 2 },
+            { q: "Pohon Beringin melambangkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 2 },
             { q: "Bunyi Sila ke-2 adalah...", opt: ["Ketuhanan Yang Maha Esa", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia", "Keadilan Sosial"], ans: 1 },
             { q: "Simbol Padi dan Kapas melambangkan Sila ke-...", opt: ["Ketiga", "Keempat", "Kelima", "Kedua"], ans: 2 },
             { q: "Jumlah bulu pada sayap Burung Garuda Pancasila adalah...", opt: ["17", "8", "45", "19"], ans: 0 }

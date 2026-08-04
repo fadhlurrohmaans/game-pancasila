@@ -3,27 +3,25 @@ import streamlit.components.v1 as components
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
-    page_title="Nusantara Gem Crush",
-    page_icon="💎",
+    page_title="Nusantara Gem Crush: Pancasila Quest",
+    page_icon="🦅",
     layout="centered"
 )
 
-# Custom Styling untuk Streamlit Container
+# Custom Styling Background Streamlit
 st.markdown("""
     <style>
     .main {
-        background: linear-gradient(135deg, #1e1e2f 0%, #0f0c20 100%);
+        background: linear-gradient(135deg, #1f0003 0%, #0d0001 100%);
     }
-    .stAppHeader {
-        background-color: transparent;
-    }
+    .stAppHeader { background-color: transparent; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💎 Nusantara Gem Crush Saga")
-st.caption("Cocokkan 3 atau lebih permata sejajar untuk mencetak skor tertinggi! Game khusus untuk Streamlit.")
+st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
+st.caption("Cocokkan simbol Pancasila, jawab soal kuisnya, dan raih skor tertinggi di setiap Level!")
 
-# Kode Game HTML + CSS + JavaScript (Match-3 Engine)
+# Single Bundle Engine HTML5 + CSS + JavaScript
 game_html = """
 <!DOCTYPE html>
 <html lang="id">
@@ -32,142 +30,290 @@ game_html = """
 <style>
     * {
         box-sizing: border-box;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         user-select: none;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     body {
         margin: 0;
         padding: 10px;
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        background: linear-gradient(135deg, #600000, #2b0000);
         color: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        min-height: 620px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        position: relative;
     }
-    .score-board {
-        display: flex;
-        justify-content: space-around;
+    .card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        border-radius: 16px;
+        padding: 20px;
         width: 100%;
-        max-width: 400px;
-        margin-bottom: 15px;
-        background: rgba(255, 255, 255, 0.1);
+        max-width: 520px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+    h2 { color: #ffd700; margin-top: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    
+    /* Stats Bar */
+    .stats-bar {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 480px;
+        background: rgba(0,0,0,0.4);
         padding: 10px 15px;
         border-radius: 12px;
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 215, 0, 0.2);
     }
-    .score-box {
-        text-align: center;
-    }
-    .score-title {
-        font-size: 12px;
-        text-transform: uppercase;
-        color: #00d2d3;
-        font-weight: bold;
-    }
-    .score-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #fff;
-    }
+    .stat-item { text-align: center; }
+    .stat-title { font-size: 11px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
+    .stat-value { font-size: 18px; font-weight: bold; }
+
+    /* Gem Grid */
     #grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        grid-gap: 8px;
-        background: rgba(0, 0, 0, 0.4);
-        padding: 12px;
+        grid-gap: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
         border-radius: 16px;
-        border: 2px solid #00d2d3;
-        box-shadow: 0 0 20px rgba(0, 210, 211, 0.2);
+        border: 2px solid #ffd700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
     }
     .tile {
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
         background: rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 24px;
         cursor: pointer;
         transition: transform 0.2s, background 0.2s;
         border: 1px solid rgba(255,255,255,0.05);
     }
-    .tile:hover {
-        transform: scale(1.08);
-        background: rgba(255, 255, 255, 0.2);
-    }
+    .tile:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.2); }
     .tile.selected {
-        border: 2px solid #ff9f43;
-        transform: scale(1.1);
-        box-shadow: 0 0 12px #ff9f43;
-        animation: pulse 0.8s infinite alternate;
+        border: 2px solid #ffd700;
+        transform: scale(1.15);
+        box-shadow: 0 0 12px #ffd700;
     }
-    @keyframes pulse {
-        0% { transform: scale(1.05); }
-        100% { transform: scale(1.15); }
-    }
-    .btn {
-        margin-top: 15px;
-        padding: 10px 24px;
-        background: linear-gradient(45deg, #ff6b6b, #ff8e53);
-        border: none;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        border-radius: 25px;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        transition: transform 0.2s;
-    }
-    .btn:hover {
-        transform: translateY(-2px);
-    }
-    .game-over {
+
+    /* Quiz Modal Overlay */
+    .modal-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0, 0, 0, 0.9);
+        border-radius: 16px;
         display: flex;
         flex-direction: column;
-        align-items: center;
         justify-content: center;
-        border-radius: 16px;
-        z-index: 10;
+        align-items: center;
+        padding: 20px;
+        z-index: 100;
     }
+    .timer-bar-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+    .timer-bar { height: 100%; background: #ffd700; width: 100%; }
+    
+    .btn {
+        background: linear-gradient(45deg, #d32f2f, #b71c1c);
+        color: white; border: 1px solid #ffd700;
+        padding: 10px 20px; font-size: 15px; font-weight: bold;
+        border-radius: 25px; cursor: pointer; transition: all 0.2s;
+        margin: 5px;
+    }
+    .btn:hover { transform: translateY(-2px); background: linear-gradient(45deg, #f44336, #d32f2f); }
+    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 250px; }
+    .btn-diff.selected { background: #ffd700; color: #800000; font-weight: bold; }
+
+    .opt-btn {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white; padding: 10px 12px; border-radius: 10px;
+        text-align: left; font-size: 14px; cursor: pointer; margin-bottom: 8px;
+        width: 100%; transition: all 0.2s;
+    }
+    .opt-btn:hover { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
+    .opt-btn.correct { background: #2e7d32 !important; }
+    .opt-btn.wrong { background: #c62828 !important; }
+
+    .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<div class="score-board">
-    <div class="score-box">
-        <div class="score-title">Skor</div>
-        <div class="score-value" id="score">0</div>
+<!-- SCREEN 1: START & DIFFICULTY -->
+<div class="card" id="screen-start">
+    <h2>🦅 Nusantara Gem Crush</h2>
+    <p style="font-size: 14px;">Cocokkan Simbol Pancasila & Jawab Kuisnya!</p>
+    
+    <div style="margin: 15px 0;">
+        <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mudah (20s Soal | 25 Langkah)</button><br>
+        <button class="btn btn-diff" onclick="setDiff('sedang', this)">🟡 Sedang (12s Soal | 20 Langkah)</button><br>
+        <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Tinggi (7s Soal | 15 Langkah)</button>
     </div>
-    <div class="score-box">
-        <div class="score-title">Langkah</div>
-        <div class="score-value" id="moves">20</div>
+
+    <button class="btn" style="width: 80%; font-size: 17px;" onclick="startGame()">Mulai Petualangan 🚀</button>
+</div>
+
+<!-- SCREEN 2: GAME BOARD -->
+<div id="screen-game" class="hidden" style="display:flex; flex-direction:column; align-items:center;">
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-title">Level</div>
+            <div class="stat-value" id="val-level" style="color:#ffd700;">1</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-title">Skor</div>
+            <div class="stat-value" id="val-score">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-title">Langkah</div>
+            <div class="stat-value" id="val-moves">25</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-title">Target Soal</div>
+            <div class="stat-value" id="val-target" style="color:#4caf50;">0/5</div>
+        </div>
+    </div>
+
+    <div id="grid"></div>
+</div>
+
+<!-- QUIZ MODAL OVERLAY -->
+<div class="modal-overlay hidden" id="quiz-modal">
+    <div style="width: 100%; max-width: 450px; text-align: center;">
+        <div style="font-size: 12px; color: #ffd700; font-weight: bold;" id="modal-tag">CHALLENGE PANCASILA</div>
+        <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
+        <h3 id="quiz-question" style="font-size: 16px; margin: 10px 0 15px 0; min-height: 45px;">Pertanyaan...</h3>
+        <div id="quiz-options"></div>
     </div>
 </div>
 
-<div id="grid"></div>
+<!-- SCREEN 3: LEVEL COMPLETE -->
+<div class="card hidden" id="screen-level-win">
+    <h2>🎉 Level Selesai!</h2>
+    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan ini.</p>
+    <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
+    <button class="btn" id="btn-next-lvl" onclick="nextLevel()">Lanjut Level Berikutnya ➡️</button>
+</div>
 
-<button class="btn" onclick="resetGame()">🎮 Main Ulang</button>
+<!-- SCREEN 4: GAME OVER / TAMAT -->
+<div class="card hidden" id="screen-end">
+    <h2 id="end-title">🏆 Petualangan Selesai!</h2>
+    <p id="end-desc">Hasil Perjuangan Pancasila Kamu:</p>
+    <div style="font-size: 36px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0</div>
+    <div style="font-weight: bold; color: #4caf50; font-size: 18px; margin-bottom: 15px;" id="final-rank"></div>
+    <button class="btn" onclick="resetGame()">Main Lagi 🔄</button>
+</div>
 
 <script>
     const width = 6;
-    const gems = ['💎', '🌟', '🥑', '🔮', '🍎', '⚡'];
+    // Simbol Pancasila: ⭐ Bintang, ⛓️ Rantai, 🌳 Beringin, 🐂 Banteng, 🌾 Padi Kapas, 🦅 Garuda
+    const gems = ['⭐', '⛓️', '🌳', '🐂', '🌾', '🦅'];
+    
+    // Soal Database per Level
+    const questionsDB = {
+        1: [
+            { q: "Sila Pertama Pancasila disimbolkan dengan...", opt: ["Bintang Emas", "Rantai Emas", "Pohon Beringin", "Kepala Banteng"], ans: 0 },
+            { q: "Pohon Beringin melambangkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 2 },
+            { q: "Bunyi Sila ke-2 adalah...", opt: ["Ketuhanan Yang Maha Esa", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia", "Keadilan Sosial"], ans: 1 },
+            { q: "Simbol Padi dan Kapas melambangkan Sila ke-...", opt: ["Ketiga", "Keempat", "Kelima", "Kedua"], ans: 2 },
+            { q: "Jumlah bulu pada sayap Burung Garuda Pancasila adalah...", opt: ["17", "8", "45", "19"], ans: 0 }
+        ],
+        2: [
+            { q: "Menghormati orang lain yang sedang beribadah adalah pengamalan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 0 },
+            { q: "Melakukan musyawarah mufakat untuk mengambil keputusan bersama adalah nilai Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 2 },
+            { q: "Gotong royong dan menjaga persatuan bangsa mencerminkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 5"], ans: 2 },
+            { q: "Menjenguk teman sakit dan saling mencintai sesama manusia adalah Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 4", "Sila 5"], ans: 1 },
+            { q: "Sikap adil dan menghargai hak-hak orang lain sesuai dengan Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
+            { q: "Bangga menggunakan bahasa nasional Indonesia merupakan wujud Sila ke-...", opt: ["Sila 1", "Sila 3", "Sila 4", "Sila 5"], ans: 1 },
+            { q: "Musyawarah dilakukan dengan akal sehat dan sesuai hati nurani yang luhur adalah Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 2 },
+            { q: "Suka bekerja keras dan tidak bergaya hidup mewah merupakan pengamalan Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 }
+        ],
+        3: [
+            { q: "Pancasila secara resmi disahkan sebagai Dasar Negara pada tanggal...", opt: ["17 Agustus 1945", "18 Agustus 1945", "1 Juni 1945", "22 Juni 1945"], ans: 1 },
+            { q: "Istilah Pancasila pertama kali diusulkan oleh Ir. Soekarno pada tanggal...", opt: ["29 Mei 1945", "1 Juni 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 1 },
+            { q: "Semboyan 'Bhinneka Tunggal Ika' diambil dari Kitab Sutasoma karya...", opt: ["Mpu Prapanca", "Mpu Tantular", "Mpu Walmiki", "Mpu Sedah"], ans: 1 },
+            { q: "Rumusan awal Pancasila oleh Panitia Sembilan tertuang dalam...", opt: ["Piagam Jakarta", "Trikora", "Dekrit Presiden", "UUD 1945"], ans: 0 },
+            { q: "Pancasila sebagai 'Ideologi Terbuka' bermakna...", opt: ["Bebas diubah kapan saja", "Dapat menyesuaikan zaman tanpa mengubah nilai dasar", "Menerima semua budaya asing", "Tidak memiliki hukum mengikat"], ans: 1 },
+            { q: "Sidang BPUPKI Pertama berfokus membahas...", opt: ["Teknis Proklamasi", "Rumusan Dasar Negara", "Pemilihan Presiden", "Wilayah Negara"], ans: 1 },
+            { q: "Kedudukan Pancasila sebagai 'Sumber dari segala sumber hukum' ditetapkan dalam...", opt: ["Ketetapan MPR", "UUD 1945", "Keputusan Presiden", "Peraturan Pemerintah"], ans: 0 },
+            { q: "Simbol Rantai pada Sila ke-2 terdiri atas gelang persegi dan lingkaran yang melambangkan...", opt: ["Pria dan Wanita saling bersatu", "Kaya dan Miskin", "Pemimpin dan Rakyat", "Suku dan Agama"], ans: 0 },
+            { q: "Penetapan Hari Lahir Pancasila diperingati setiap tanggal...", opt: ["1 Juni", "17 Agustus", "1 Oktober", "28 Oktober"], ans: 0 },
+            { q: "Ketua BPUPKI yang memimpin perumusan awal dasar negara adalah...", opt: ["Dr. Radjiman Wedyodiningrat", "Ir. Soekarno", "Drs. Moh. Hatta", "Mr. Soepomo"], ans: 0 },
+            { q: "Gaya hidup konsumerisme dan boros melanggar prinsip Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
+            { q: "Pancasila sebagai Pandangan Hidup Bangsa berfungsi sebagai...", opt: ["Petunjuk arah moral kehidupan sehari-hari", "Aturan khusus pejabat", "Dokumen sejarah belaka", "Hanya dibaca saat upacara"], ans: 0 }
+        ]
+    };
+
+    // Game Variables
+    let selectedDiff = 'mudah';
+    let timePerQuestion = 20;
+    let initialMoves = 25;
+    
+    let currentLevel = 1;
+    let score = 0;
+    let moves = 25;
+    let questionsAnswered = 0;
+    let targetQuestions = 5;
+    
     let grid = [];
     let board = document.getElementById('grid');
-    let scoreDisplay = document.getElementById('score');
-    let movesDisplay = document.getElementById('moves');
-    
-    let score = 0;
-    let moves = 20;
     let selectedTile = null;
+    let isProcessing = false;
+    let timerInterval = null;
 
+    function setDiff(diff, btn) {
+        selectedDiff = diff;
+        document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        if (diff === 'mudah') { timePerQuestion = 20; initialMoves = 25; }
+        else if (diff === 'sedang') { timePerQuestion = 12; initialMoves = 20; }
+        else if (diff === 'tinggi') { timePerQuestion = 7; initialMoves = 15; }
+    }
+
+    function startGame() {
+        currentLevel = 1;
+        score = 0;
+        showScreen('screen-game');
+        initLevel();
+    }
+
+    function initLevel() {
+        moves = initialMoves;
+        questionsAnswered = 0;
+        if (currentLevel === 1) targetQuestions = 5;
+        else if (currentLevel === 2) targetQuestions = 8;
+        else if (currentLevel === 3) targetQuestions = 12;
+
+        updateUI();
+        createBoard();
+    }
+
+    function updateUI() {
+        document.getElementById('val-level').innerText = currentLevel;
+        document.getElementById('val-score').innerText = score;
+        document.getElementById('val-moves').innerText = moves;
+        document.getElementById('val-target').innerText = `${questionsAnswered}/${targetQuestions}`;
+    }
+
+    /* MATCH-3 LOGIC */
     function createBoard() {
         grid = [];
         board.innerHTML = '';
@@ -185,7 +331,7 @@ game_html = """
     }
 
     function selectTile() {
-        if (moves <= 0) return;
+        if (isProcessing || moves <= 0) return;
 
         if (!selectedTile) {
             selectedTile = this;
@@ -199,24 +345,23 @@ game_html = """
                 firstId - width, firstId + width
             ];
 
-            // Cegah swap antar baris di pinggir
             if (firstId % width === 0 && secondId === firstId - 1) validMoves = validMoves.filter(x => x !== secondId);
             if ((firstId + 1) % width === 0 && secondId === firstId + 1) validMoves = validMoves.filter(x => x !== secondId);
 
             if (validMoves.includes(secondId)) {
                 swapGems(selectedTile, this);
                 moves--;
-                movesDisplay.innerText = moves;
+                updateUI();
                 
                 setTimeout(() => {
-                    let hasMatch = checkAndClearMatches();
-                    if (!hasMatch) {
-                        // Kembalikan jika tidak ada match
-                        swapGems(selectedTile, this);
+                    let matchSymbol = checkAndClearMatches();
+                    if (!matchSymbol) {
+                        swapGems(selectedTile, this); // revert swap
                         moves++;
-                        movesDisplay.innerText = moves;
+                        updateUI();
                     } else {
-                        setTimeout(fillBoard, 300);
+                        // Trigger Quiz!
+                        triggerQuiz(matchSymbol);
                     }
                     selectedTile.classList.remove('selected');
                     selectedTile = null;
@@ -237,17 +382,17 @@ game_html = """
     }
 
     function checkAndClearMatches() {
-        let matched = false;
+        let matchedSymbol = null;
 
         // Cek Horisontal
         for (let i = 0; i < width * width; i++) {
             if (i % width < width - 2) {
                 let row = [i, i+1, i+2];
-                let decidedGem = grid[i].innerText;
-                if (decidedGem !== '' && row.every(index => grid[index].innerText === decidedGem)) {
-                    row.forEach(index => grid[index].innerText = '');
-                    score += 30;
-                    matched = true;
+                let decided = grid[i].innerText;
+                if (decided !== '' && row.every(idx => grid[idx].innerText === decided)) {
+                    row.forEach(idx => grid[idx].innerText = '');
+                    score += 50;
+                    matchedSymbol = decided;
                 }
             }
         }
@@ -255,75 +400,167 @@ game_html = """
         // Cek Vertikal
         for (let i = 0; i < width * (width - 2); i++) {
             let col = [i, i+width, i+width*2];
-            let decidedGem = grid[i].innerText;
-            if (decidedGem !== '' && col.every(index => grid[index].innerText === decidedGem)) {
-                col.forEach(index => grid[index].innerText = '');
-                score += 30;
-                matched = true;
+            let decided = grid[i].innerText;
+            if (decided !== '' && col.every(idx => grid[idx].innerText === decided)) {
+                col.forEach(idx => grid[idx].innerText = '');
+                score += 50;
+                matchedSymbol = decided;
             }
         }
 
-        scoreDisplay.innerText = score;
-        return matched;
+        return matchedSymbol;
     }
 
     function fillBoard() {
         for (let i = 0; i < width * width; i++) {
             if (grid[i].innerText === '') {
-                // Jatuhkan dari atas
                 for (let k = i; k >= width; k -= width) {
                     grid[k].innerText = grid[k - width].innerText;
                 }
                 grid[i % width].innerText = gems[Math.floor(Math.random() * gems.length)];
             }
         }
-        
-        // Cek combo match beruntun
-        setTimeout(() => {
-            if (checkAndClearMatches()) {
-                setTimeout(fillBoard, 300);
-            } else if (moves <= 0) {
-                alert("Game Selesai! Skor Akhir Anda: " + score);
-            }
-        }, 200);
     }
 
     function checkMatchesSilently() {
         while (checkAndClearMatches()) {
             for (let i = 0; i < width * width; i++) {
-                if (grid[i].innerText === '') {
-                    grid[i].innerText = gems[Math.floor(Math.random() * gems.length)];
-                }
+                if (grid[i].innerText === '') grid[i].innerText = gems[Math.floor(Math.random() * gems.length)];
             }
         }
         score = 0;
-        scoreDisplay.innerText = score;
+        updateUI();
+    }
+
+    /* QUIZ SYSTEM */
+    function triggerQuiz(symbol) {
+        isProcessing = true;
+        let qList = questionsDB[currentLevel];
+        let randomQ = qList[Math.floor(Math.random() * qList.length)];
+
+        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB SOAL UNTUK BONUS SKOR & MOVE`;
+        document.getElementById('quiz-question').innerText = randomQ.q;
+        
+        let optsDiv = document.getElementById('quiz-options');
+        optsDiv.innerHTML = '';
+
+        randomQ.opt.forEach((optText, idx) => {
+            let btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = `${String.fromCharCode(65 + idx)}. ${optText}`;
+            btn.onclick = () => handleQuizAnswer(idx === randomQ.ans, btn);
+            optsDiv.appendChild(btn);
+        });
+
+        document.getElementById('quiz-modal').classList.remove('hidden');
+        startQuizTimer();
+    }
+
+    function startQuizTimer() {
+        let timerBar = document.getElementById('timer-bar');
+        timerBar.style.width = '100%';
+        let step = 100;
+        let totalSteps = (timePerQuestion * 1000) / step;
+        let currentStep = 0;
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            currentStep++;
+            let pct = Math.max(0, 100 - (currentStep / totalSteps) * 100);
+            timerBar.style.width = pct + '%';
+
+            if (pct <= 0) {
+                clearInterval(timerInterval);
+                handleQuizAnswer(false, null);
+            }
+        }, step);
+    }
+
+    function handleQuizAnswer(isCorrect, btn) {
+        clearInterval(timerInterval);
+        if (btn) btn.classList.add(isCorrect ? 'correct' : 'wrong');
+
+        if (isCorrect) {
+            score += 150;
+            moves += 2; // Extra bonus moves!
+            questionsAnswered++;
+        }
+
+        updateUI();
+
+        setTimeout(() => {
+            document.getElementById('quiz-modal').classList.add('hidden');
+            fillBoard();
+            isProcessing = false;
+
+            // Check Win / Lose Condition
+            if (questionsAnswered >= targetQuestions) {
+                levelWin();
+            } else if (moves <= 0) {
+                gameOver("Langkah Kamu Habis! Ayo coba lagi.");
+            }
+        }, 1000);
+    }
+
+    function levelWin() {
+        if (currentLevel < 3) {
+            showScreen('screen-level-win');
+            document.getElementById('win-score').innerText = `${score} Poin`;
+            document.getElementById('btn-next-lvl').innerText = `Lanjut ke Level ${currentLevel + 1} ➡️`;
+        } else {
+            gameOver("SELAMAT! Kamu berhasil menamatkan seluruh Tantangan Pancasila!", true);
+        }
+    }
+
+    function nextLevel() {
+        currentLevel++;
+        showScreen('screen-game');
+        initLevel();
+    }
+
+    function gameOver(msg, isVictory = false) {
+        showScreen('screen-end');
+        document.getElementById('end-title').innerText = isVictory ? "🏆 Champion Pancasila!" : "💥 Game Over";
+        document.getElementById('end-desc').innerText = msg;
+        document.getElementById('final-score').innerText = `${score} Poin`;
+
+        let rank = "";
+        if (score > 2500) rank = "🥇 Gelar: Duta Utama Garuda Pancasila";
+        else if (score > 1500) rank = "🥈 Gelar: Pejuang Patriot Muda";
+        else rank = "🥉 Gelar: Pertiwi Muda";
+
+        document.getElementById('final-rank').innerText = rank;
     }
 
     function resetGame() {
-        score = 0;
-        moves = 20;
-        scoreDisplay.innerText = score;
-        movesDisplay.innerText = moves;
-        selectedTile = null;
-        createBoard();
+        showScreen('screen-start');
     }
 
-    createBoard();
+    function showScreen(screenId) {
+        ['screen-start', 'screen-game', 'screen-level-win', 'screen-end'].forEach(id => {
+            let el = document.getElementById(id);
+            if(id === screenId) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        });
+    }
 </script>
-
 </body>
 </html>
 """
 
-# Render Game HTML di Streamlit
-components.html(game_html, height=520, scrolling=False)
+# Render Game di Streamlit
+components.html(game_html, height=660, scrolling=False)
 
-# Informasi Tambahan
-with st.expander("ℹ️ Cara Bermain"):
+# Panduan Petualangan
+with st.expander("🎮 Cara Bermain Nusantara Gem Crush: Pancasila Quest"):
     st.write("""
-    1. Klik salah satu **Permata (Gem)**.
-    2. Klik permata di sebelahnya (atas, bawah, kiri, atau kanan) untuk menukar posisi.
-    3. Jika terbentuk sejajar **3 permata atau lebih** yang sama, permata akan pecah dan menambah skor!
-    4. Anda memiliki **20 Langkah** untuk meraih skor tertinggi.
+    1. **Tukar & Cocokkan Permata:** Geser/klik 2 simbol Pancasila berdampingan untuk mencocokkan **3 atau lebih simbol yang sama**.
+    2. **Picu Kuis Pancasila:** Setiap kali berhasil mencocokkan permata, **Soal Kuis Pancasila** akan muncul secara otomatis!
+    3. **Raih Bonus Jawaban Benar:** 
+       - Jawaban Benar = **+150 Poin** + **+2 Bonus Langkah (Moves)**.
+       - Jawaban Benar akan menambah progres **Target Soal** levelmu.
+    4. **Tingkat Kesulitan:**
+       - **Mudah:** Waktu Jawab 20s | 25 Langkah Awal.
+       - **Sedang:** Waktu Jawab 12s | 20 Langkah Awal.
+       - **Tinggi:** Waktu Jawab 7s | 15 Langkah Awal.
     """)

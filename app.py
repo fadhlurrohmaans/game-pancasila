@@ -18,7 +18,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
+st.title("🦅 Pengumpul Permata Nusantara: Misi Pancasila")
 st.caption("Selesaikan target soal sebelum waktu level habis, jangan sampai kehabisan langkah atau nyawa!")
 
 # Single Bundle Engine HTML5 + CSS + JavaScript

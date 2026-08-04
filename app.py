@@ -5,103 +5,131 @@ import streamlit.components.v1 as components
 st.set_page_config(
     page_title="Nusantara Gem Crush: Pancasila Quest",
     page_icon="🦅",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# Custom Styling Background Streamlit
+# Custom Styling CSS Streamlit untuk Tampilan Layar Penuh (Full Screen Mobile)
 st.markdown("""
     <style>
+    /* Sembunyikan Header/Footer Streamlit & Optimasi Margin Layar */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    .block-container {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+        max-width: 100% !important;
+    }
     .main {
         background: linear-gradient(135deg, #1f0003 0%, #0d0001 100%);
     }
-    .stAppHeader { background-color: transparent; }
+    iframe {
+        border-radius: 16px;
+        width: 100% !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
-st.caption("Cocokkan Permata Pancasila & Jawab Kuis Sebelum Waktu Level Habis!")
-
-# Single Bundle Engine HTML5 + CSS + JavaScript
+# Single Bundle Engine HTML5 + CSS + JavaScript (Mobile & Desktop Responsive)
 game_html = """
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <style>
     * {
         box-sizing: border-box;
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        touch-action: manipulation;
+    }
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
     }
     body {
-        margin: 0;
-        padding: 10px;
+        padding: 8px;
         background: linear-gradient(135deg, #4a0000, #1a0000);
         color: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        min-height: 660px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: relative;
+        min-height: 100vh;
     }
     .card {
         background: rgba(255, 255, 255, 0.08);
         border: 2px solid rgba(255, 215, 0, 0.4);
         border-radius: 16px;
-        padding: 20px;
+        padding: 16px;
         width: 100%;
-        max-width: 520px;
+        max-width: 480px;
         text-align: center;
         backdrop-filter: blur(10px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.7);
     }
-    h2 { color: #ffd700; margin-top: 0; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+    h2 { 
+        color: #ffd700; 
+        margin-top: 0; 
+        font-size: clamp(20px, 5vw, 26px);
+        text-shadow: 0 2px 6px rgba(0,0,0,0.6); 
+    }
     
-    /* Stats Bar */
+    /* Stats Bar Mobile Friendly */
     .stats-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
         width: 100%;
-        max-width: 500px;
-        background: rgba(0,0,0,0.6);
-        padding: 8px 10px;
+        max-width: 480px;
+        background: rgba(0,0,0,0.65);
+        padding: 8px 4px;
         border-radius: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         border: 1px solid rgba(255, 215, 0, 0.3);
         box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     }
-    .stat-item { text-align: center; flex: 1; }
-    .stat-title { font-size: 10px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
-    .stat-value { font-size: 14px; font-weight: bold; }
+    .stat-item { text-align: center; }
+    .stat-title { font-size: 9px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
+    .stat-value { font-size: 12px; font-weight: bold; white-space: nowrap; }
 
-    /* Gem Grid */
+    /* Gem Grid Flexible & Responsive */
     #grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        grid-gap: 8px;
-        background: rgba(15, 5, 5, 0.8);
-        padding: 12px;
-        border-radius: 18px;
+        gap: 6px;
+        width: 100%;
+        max-width: 480px;
+        background: rgba(15, 5, 5, 0.85);
+        padding: 8px;
+        border-radius: 16px;
         border: 2px solid #ffd700;
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(0,0,0,0.8);
     }
 
     /* === BASE PERMATA / TILE STYLING === */
     .tile {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        font-size: clamp(18px, 5.5vw, 26px);
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-        border: 2px solid rgba(255, 255, 255, 0.35);
-        box-shadow: inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.5);
+        transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: inset -2px -3px 5px rgba(0,0,0,0.6), inset 2px 2px 4px rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.4);
         position: relative;
         overflow: hidden;
     }
@@ -111,77 +139,50 @@ game_html = """
         content: '';
         position: absolute;
         top: 2px;
-        left: 4px;
-        right: 4px;
+        left: 3px;
+        right: 3px;
         height: 38%;
         background: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.05));
-        border-radius: 8px 8px 100% 100%;
+        border-radius: 6px 6px 100% 100%;
         pointer-events: none;
     }
 
-    .tile:hover {
-        transform: scale(1.12);
-        filter: brightness(1.2);
-        z-index: 5;
+    .tile:active {
+        transform: scale(0.92);
     }
 
     /* Efek Permata Terpilih */
     .tile.selected {
-        border: 3px solid #ffffff !important;
-        transform: scale(1.18);
-        box-shadow: 0 0 20px #ffd700, inset 0 0 10px #ffffff !important;
+        border: 2px solid #ffffff !important;
+        transform: scale(1.12);
+        box-shadow: 0 0 18px #ffd700, inset 0 0 8px #ffffff !important;
         z-index: 10;
         animation: pulse-gem 0.8s infinite alternate;
     }
 
     @keyframes pulse-gem {
-        0% { filter: brightness(1); transform: scale(1.15); }
-        100% { filter: brightness(1.35); transform: scale(1.22); }
+        0% { filter: brightness(1); transform: scale(1.08); }
+        100% { filter: brightness(1.35); transform: scale(1.15); }
     }
 
-    /* === WARNA & EFEK KHUSUS SETIAP PERMATA PANCASILA === */
-    .gem-topaz { 
-        background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); 
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
-    .gem-sapphire { 
-        background: linear-gradient(135deg, #4dabf7, #1971c2, #0c365e); 
-        box-shadow: 0 0 10px rgba(25, 113, 194, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
-    .gem-emerald { 
-        background: linear-gradient(135deg, #51cf66, #2b8a3e, #123b1a); 
-        box-shadow: 0 0 10px rgba(43, 138, 62, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
-    .gem-ruby { 
-        background: linear-gradient(135deg, #ff6b6b, #c92a2a, #5c0b0b); 
-        box-shadow: 0 0 10px rgba(201, 42, 42, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
-    .gem-amber { 
-        background: linear-gradient(135deg, #ffc078, #d9480f, #7a2200); 
-        box-shadow: 0 0 10px rgba(217, 72, 15, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
-    .gem-amethyst { 
-        background: linear-gradient(135deg, #cc5de8, #862e9c, #3b0d48); 
-        box-shadow: 0 0 10px rgba(134, 46, 156, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    }
+    /* WARNA PERMATA PANCASILA */
+    .gem-topaz { background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); }
+    .gem-sapphire { background: linear-gradient(135deg, #4dabf7, #1971c2, #0c365e); }
+    .gem-emerald { background: linear-gradient(135deg, #51cf66, #2b8a3e, #123b1a); }
+    .gem-ruby { background: linear-gradient(135deg, #ff6b6b, #c92a2a, #5c0b0b); }
+    .gem-amber { background: linear-gradient(135deg, #ffc078, #d9480f, #7a2200); }
+    .gem-amethyst { background: linear-gradient(135deg, #cc5de8, #862e9c, #3b0d48); }
 
     /* Quiz Modal Overlay */
     .modal-overlay {
-        position: absolute;
+        position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.93);
-        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.94);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 20px;
+        padding: 16px;
         z-index: 100;
     }
     .timer-bar-container {
@@ -197,22 +198,24 @@ game_html = """
     .btn {
         background: linear-gradient(45deg, #d32f2f, #b71c1c);
         color: white; border: 1px solid #ffd700;
-        padding: 10px 20px; font-size: 15px; font-weight: bold;
+        padding: 12px 20px; font-size: 15px; font-weight: bold;
         border-radius: 25px; cursor: pointer; transition: all 0.2s;
-        margin: 5px;
+        margin: 6px;
+        width: 100%;
+        max-width: 300px;
     }
-    .btn:hover { transform: translateY(-2px); background: linear-gradient(45deg, #f44336, #d32f2f); }
-    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 270px; }
+    .btn:active { transform: scale(0.96); }
+    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 290px; }
     .btn-diff.selected { background: #ffd700; color: #800000; font-weight: bold; }
 
     .opt-btn {
         background: rgba(255, 255, 255, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white; padding: 10px 12px; border-radius: 10px;
-        text-align: left; font-size: 14px; cursor: pointer; margin-bottom: 8px;
+        color: white; padding: 12px; border-radius: 10px;
+        text-align: left; font-size: 13px; cursor: pointer; margin-bottom: 8px;
         width: 100%; transition: all 0.2s;
     }
-    .opt-btn:hover { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
+    .opt-btn:active { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
     .opt-btn.correct { background: #2e7d32 !important; }
     .opt-btn.wrong { background: #c62828 !important; }
 
@@ -224,26 +227,26 @@ game_html = """
 <!-- SCREEN 1: START & DIFFICULTY -->
 <div class="card" id="screen-start">
     <h2>🦅 Nusantara Gem Crush</h2>
-    <p style="font-size: 13px; color: #ffe066;">Permata Pancasila Quest</p>
+    <p style="font-size: 12px; color: #ffe066; margin-bottom: 12px;">Permata Pancasila Quest</p>
     
     <div style="margin: 10px 0;">
         <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mode Normal (25 Langkah | 3 ❤️)</button><br>
         <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Mode Tantangan (15 Langkah | 2 ❤️)</button>
     </div>
 
-    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
-        💎 <b>Batasan Waktu Level & Soal:</b><br>
+    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
+        ⏱️ <b>Batasan Waktu Level & Soal:</b><br>
         • Level 1: <b>5 Menit</b> (Target: 5 Soal | 60s/soal)<br>
         • Level 2: <b>4 Menit</b> (Target: 8 Soal | 30s/soal)<br>
         • Level 3: <b>3 Menit</b> (Target: 10 Soal | 18s/soal)<br>
         ⚠️ Waktu Habis / Nyawa Habis / Langkah Habis = <b>GAME OVER</b>!
     </div>
 
-    <button class="btn" style="width: 80%; font-size: 17px;" onclick="startGame()">Mulai Petualangan 🚀</button>
+    <button class="btn" style="font-size: 16px;" onclick="startGame()">Mulai Petualangan 🚀</button>
 </div>
 
 <!-- SCREEN 2: GAME BOARD -->
-<div id="screen-game" class="hidden" style="display:flex; flex-direction:column; align-items:center;">
+<div id="screen-game" class="hidden" style="display:flex; flex-direction:column; align-items:center; width: 100%;">
     <div class="stats-bar">
         <div class="stat-item">
             <div class="stat-title">Nyawa</div>
@@ -254,7 +257,7 @@ game_html = """
             <div class="stat-value" id="val-level" style="color:#ffd700;">1</div>
         </div>
         <div class="stat-item">
-            <div class="stat-title">Waktu Level</div>
+            <div class="stat-title">Waktu</div>
             <div class="stat-value" id="val-level-time" style="color:#ff9f43;">05:00</div>
         </div>
         <div class="stat-item">
@@ -262,7 +265,7 @@ game_html = """
             <div class="stat-value" id="val-score">0</div>
         </div>
         <div class="stat-item">
-            <div class="stat-title">Langkah</div>
+            <div class="stat-title">Moves</div>
             <div class="stat-value" id="val-moves">25</div>
         </div>
         <div class="stat-item">
@@ -276,10 +279,10 @@ game_html = """
 
 <!-- QUIZ MODAL OVERLAY -->
 <div class="modal-overlay hidden" id="quiz-modal">
-    <div style="width: 100%; max-width: 450px; text-align: center;">
-        <div style="font-size: 12px; color: #ffd700; font-weight: bold;" id="modal-tag">CHALLENGE PANCASILA</div>
+    <div style="width: 100%; max-width: 440px; text-align: center;">
+        <div style="font-size: 11px; color: #ffd700; font-weight: bold;" id="modal-tag">CHALLENGE PANCASILA</div>
         <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
-        <h3 id="quiz-question" style="font-size: 15px; margin: 10px 0 15px 0; min-height: 45px;">Pertanyaan...</h3>
+        <h3 id="quiz-question" style="font-size: 14px; margin: 10px 0 15px 0; min-height: 40px; line-height: 1.4;">Pertanyaan...</h3>
         <div id="quiz-options"></div>
     </div>
 </div>
@@ -287,17 +290,17 @@ game_html = """
 <!-- SCREEN 3: LEVEL COMPLETE -->
 <div class="card hidden" id="screen-level-win">
     <h2>🎉 Level Selesai!</h2>
-    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan permata level ini tepat waktu.</p>
-    <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
+    <p id="win-desc" style="font-size: 13px;">Selamat! Kamu berhasil menuntaskan tantangan permata level ini tepat waktu.</p>
+    <div style="font-size: 30px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
     <button class="btn" id="btn-next-lvl" onclick="nextLevel()">Lanjut Level Berikutnya ➡️</button>
 </div>
 
 <!-- SCREEN 4: GAME OVER / TAMAT -->
 <div class="card hidden" id="screen-end">
     <h2 id="end-title">💥 GAME OVER</h2>
-    <p id="end-desc" style="font-size: 14px; color: #ff6b6b; font-weight: bold;">Gagal menyelesaikan tantangan!</p>
-    <div style="font-size: 36px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0 Poin</div>
-    <div style="font-weight: bold; color: #4caf50; font-size: 16px; margin-bottom: 15px;" id="final-rank"></div>
+    <p id="end-desc" style="font-size: 13px; color: #ff6b6b; font-weight: bold;">Gagal menyelesaikan tantangan!</p>
+    <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0 Poin</div>
+    <div style="font-weight: bold; color: #4caf50; font-size: 15px; margin-bottom: 15px;" id="final-rank"></div>
     <button class="btn" onclick="resetGame()">Main Lagi 🔄</button>
 </div>
 
@@ -388,10 +391,8 @@ game_html = """
         const symbol = tile.innerText;
         const index = gems.indexOf(symbol);
         
-        // Bersihkan kelas permata terdahulu
         gemClasses.forEach(cls => tile.classList.remove(cls));
         
-        // Terapkan kelas permata baru
         if (index !== -1) {
             tile.classList.add(gemClasses[index]);
         }
@@ -713,20 +714,4 @@ game_html = """
 """
 
 # Render Game di Streamlit
-components.html(game_html, height=670, scrolling=False)
-
-# Panduan Petualangan
-with st.expander("💎 Koleksi Permata Pancasila & Aturan Game"):
-    st.write("""
-    - **Tipe Permata Pancasila:**
-      - 🌟 **Topaz Emas:** Bintang Pancasila (Sila 1)
-      - ⛓️ **Safir Biru:** Rantai Pancasila (Sila 2)
-      - 🌳 **Zamrud Hijau:** Pohon Beringin (Sila 3)
-      - 🐂 **Rubi Merah:** Kepala Banteng (Sila 4)
-      - 🌾 **Amber Oranye:** Padi & Kapas (Sila 5)
-      - 🦅 **Ametis Ungu:** Lambang Garuda Pancasila
-    - **Batasan Waktu Level & Soal:**
-      - **Level 1:** ⏳ 5 Menit — Target: **5 Soal** (60 Detik/soal)
-      - **Level 2:** ⏳ 4 Menit — Target: **8 Soal** (30 Detik/soal)
-      - **Level 3:** ⏳ 3 Menit — Target: **10 Soal** (18 Detik/soal)
-    """)
+components.html(game_html, height=720, scrolling=False)

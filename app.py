@@ -19,7 +19,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
-st.caption("Cocokkan simbol Pancasila, jawab soal kuisnya, dan raih skor tertinggi di setiap Level!")
+st.caption("Gunakan strategi terbaikmu! Menukar tanpa match akan mengurangi langkah, dan salah menjawab soal akan mengurangi nyawa.")
 
 # Single Bundle Engine HTML5 + CSS + JavaScript
 game_html = """
@@ -40,7 +40,7 @@ game_html = """
         color: white;
         border-radius: 16px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-        min-height: 620px;
+        min-height: 640px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -63,17 +63,18 @@ game_html = """
     .stats-bar {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         width: 100%;
-        max-width: 480px;
-        background: rgba(0,0,0,0.4);
-        padding: 10px 15px;
+        max-width: 490px;
+        background: rgba(0,0,0,0.5);
+        padding: 10px 12px;
         border-radius: 12px;
         margin-bottom: 12px;
         border: 1px solid rgba(255, 215, 0, 0.2);
     }
     .stat-item { text-align: center; }
     .stat-title { font-size: 11px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
-    .stat-value { font-size: 18px; font-weight: bold; }
+    .stat-value { font-size: 16px; font-weight: bold; }
 
     /* Gem Grid */
     #grid {
@@ -110,7 +111,7 @@ game_html = """
     .modal-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.92);
         border-radius: 16px;
         display: flex;
         flex-direction: column;
@@ -137,7 +138,7 @@ game_html = """
         margin: 5px;
     }
     .btn:hover { transform: translateY(-2px); background: linear-gradient(45deg, #f44336, #d32f2f); }
-    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 250px; }
+    .btn-diff { background: rgba(255,255,255,0.1); width: 100%; max-width: 260px; }
     .btn-diff.selected { background: #ffd700; color: #800000; font-weight: bold; }
 
     .opt-btn {
@@ -159,12 +160,19 @@ game_html = """
 <!-- SCREEN 1: START & DIFFICULTY -->
 <div class="card" id="screen-start">
     <h2>🦅 Nusantara Gem Crush</h2>
-    <p style="font-size: 14px;">Cocokkan Simbol Pancasila & Jawab Kuisnya!</p>
+    <p style="font-size: 13px;">Cocokkan Simbol Pancasila & Jawab Kuisnya!</p>
     
     <div style="margin: 15px 0;">
-        <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mudah (20s Soal | 25 Langkah)</button><br>
-        <button class="btn btn-diff" onclick="setDiff('sedang', this)">🟡 Sedang (12s Soal | 20 Langkah)</button><br>
-        <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Tinggi (7s Soal | 15 Langkah)</button>
+        <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mudah (20s Soal | 25 Langkah | 3 ❤️)</button><br>
+        <button class="btn btn-diff" onclick="setDiff('sedang', this)">🟡 Sedang (12s Soal | 20 Langkah | 3 ❤️)</button><br>
+        <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Tinggi (7s Soal | 15 Langkah | 2 ❤️)</button>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 15px; text-align: left;">
+        ⚠️ <b>Aturan Baru:</b><br>
+        • Menukar tanpa hasil match <u>TETAP mengurangi langkah</u>!<br>
+        • Jawaban kuis salah / kehabisan waktu akan <u>mengurangi 1 Nyawa (❤️)</u>.<br>
+        • Kehabisan langkah atau nyawa = <b>Game Over</b>.
     </div>
 
     <button class="btn" style="width: 80%; font-size: 17px;" onclick="startGame()">Mulai Petualangan 🚀</button>
@@ -174,7 +182,11 @@ game_html = """
 <div id="screen-game" class="hidden" style="display:flex; flex-direction:column; align-items:center;">
     <div class="stats-bar">
         <div class="stat-item">
-            <div class="stat-title">Level</div>
+            <div class="stat-title">Nyawa</div>
+            <div class="stat-value" id="val-lives" style="color:#ff4d4d;">❤️❤️❤️</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-title">Lvl</div>
             <div class="stat-value" id="val-level" style="color:#ffd700;">1</div>
         </div>
         <div class="stat-item">
@@ -186,7 +198,7 @@ game_html = """
             <div class="stat-value" id="val-moves">25</div>
         </div>
         <div class="stat-item">
-            <div class="stat-title">Target Soal</div>
+            <div class="stat-title">Target</div>
             <div class="stat-value" id="val-target" style="color:#4caf50;">0/5</div>
         </div>
     </div>
@@ -199,7 +211,7 @@ game_html = """
     <div style="width: 100%; max-width: 450px; text-align: center;">
         <div style="font-size: 12px; color: #ffd700; font-weight: bold;" id="modal-tag">CHALLENGE PANCASILA</div>
         <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
-        <h3 id="quiz-question" style="font-size: 16px; margin: 10px 0 15px 0; min-height: 45px;">Pertanyaan...</h3>
+        <h3 id="quiz-question" style="font-size: 15px; margin: 10px 0 15px 0; min-height: 45px;">Pertanyaan...</h3>
         <div id="quiz-options"></div>
     </div>
 </div>
@@ -207,26 +219,25 @@ game_html = """
 <!-- SCREEN 3: LEVEL COMPLETE -->
 <div class="card hidden" id="screen-level-win">
     <h2>🎉 Level Selesai!</h2>
-    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan ini.</p>
+    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan level ini.</p>
     <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
     <button class="btn" id="btn-next-lvl" onclick="nextLevel()">Lanjut Level Berikutnya ➡️</button>
 </div>
 
 <!-- SCREEN 4: GAME OVER / TAMAT -->
 <div class="card hidden" id="screen-end">
-    <h2 id="end-title">🏆 Petualangan Selesai!</h2>
-    <p id="end-desc">Hasil Perjuangan Pancasila Kamu:</p>
-    <div style="font-size: 36px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0</div>
-    <div style="font-weight: bold; color: #4caf50; font-size: 18px; margin-bottom: 15px;" id="final-rank"></div>
+    <h2 id="end-title">💥 GAME OVER</h2>
+    <p id="end-desc" style="font-size: 14px; color: #ff6b6b; font-weight: bold;">Kehabisan Langkah / Nyawa!</p>
+    <div style="font-size: 36px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="final-score">0 Poin</div>
+    <div style="font-weight: bold; color: #4caf50; font-size: 16px; margin-bottom: 15px;" id="final-rank"></div>
     <button class="btn" onclick="resetGame()">Main Lagi 🔄</button>
 </div>
 
 <script>
     const width = 6;
-    // Simbol Pancasila: ⭐ Bintang, ⛓️ Rantai, 🌳 Beringin, 🐂 Banteng, 🌾 Padi Kapas, 🦅 Garuda
     const gems = ['⭐', '⛓️', '🌳', '🐂', '🌾', '🦅'];
     
-    // Soal Database per Level
+    // Database Soal Pancasila per Level
     const questionsDB = {
         1: [
             { q: "Sila Pertama Pancasila disimbolkan dengan...", opt: ["Bintang Emas", "Rantai Emas", "Pohon Beringin", "Kepala Banteng"], ans: 0 },
@@ -242,7 +253,6 @@ game_html = """
             { q: "Menjenguk teman sakit dan saling mencintai sesama manusia adalah Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 4", "Sila 5"], ans: 1 },
             { q: "Sikap adil dan menghargai hak-hak orang lain sesuai dengan Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
             { q: "Bangga menggunakan bahasa nasional Indonesia merupakan wujud Sila ke-...", opt: ["Sila 1", "Sila 3", "Sila 4", "Sila 5"], ans: 1 },
-            { q: "Musyawarah dilakukan dengan akal sehat dan sesuai hati nurani yang luhur adalah Sila...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 2 },
             { q: "Suka bekerja keras dan tidak bergaya hidup mewah merupakan pengamalan Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 }
         ],
         3: [
@@ -253,11 +263,7 @@ game_html = """
             { q: "Pancasila sebagai 'Ideologi Terbuka' bermakna...", opt: ["Bebas diubah kapan saja", "Dapat menyesuaikan zaman tanpa mengubah nilai dasar", "Menerima semua budaya asing", "Tidak memiliki hukum mengikat"], ans: 1 },
             { q: "Sidang BPUPKI Pertama berfokus membahas...", opt: ["Teknis Proklamasi", "Rumusan Dasar Negara", "Pemilihan Presiden", "Wilayah Negara"], ans: 1 },
             { q: "Kedudukan Pancasila sebagai 'Sumber dari segala sumber hukum' ditetapkan dalam...", opt: ["Ketetapan MPR", "UUD 1945", "Keputusan Presiden", "Peraturan Pemerintah"], ans: 0 },
-            { q: "Simbol Rantai pada Sila ke-2 terdiri atas gelang persegi dan lingkaran yang melambangkan...", opt: ["Pria dan Wanita saling bersatu", "Kaya dan Miskin", "Pemimpin dan Rakyat", "Suku dan Agama"], ans: 0 },
-            { q: "Penetapan Hari Lahir Pancasila diperingati setiap tanggal...", opt: ["1 Juni", "17 Agustus", "1 Oktober", "28 Oktober"], ans: 0 },
-            { q: "Ketua BPUPKI yang memimpin perumusan awal dasar negara adalah...", opt: ["Dr. Radjiman Wedyodiningrat", "Ir. Soekarno", "Drs. Moh. Hatta", "Mr. Soepomo"], ans: 0 },
-            { q: "Gaya hidup konsumerisme dan boros melanggar prinsip Sila ke-...", opt: ["Sila 2", "Sila 3", "Sila 4", "Sila 5"], ans: 3 },
-            { q: "Pancasila sebagai Pandangan Hidup Bangsa berfungsi sebagai...", opt: ["Petunjuk arah moral kehidupan sehari-hari", "Aturan khusus pejabat", "Dokumen sejarah belaka", "Hanya dibaca saat upacara"], ans: 0 }
+            { q: "Penetapan Hari Lahir Pancasila diperingati setiap tanggal...", opt: ["1 Juni", "17 Agustus", "1 Oktober", "28 Oktober"], ans: 0 }
         ]
     };
 
@@ -265,10 +271,12 @@ game_html = """
     let selectedDiff = 'mudah';
     let timePerQuestion = 20;
     let initialMoves = 25;
+    let maxLives = 3;
     
     let currentLevel = 1;
     let score = 0;
     let moves = 25;
+    let lives = 3;
     let questionsAnswered = 0;
     let targetQuestions = 5;
     
@@ -283,14 +291,15 @@ game_html = """
         document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
 
-        if (diff === 'mudah') { timePerQuestion = 20; initialMoves = 25; }
-        else if (diff === 'sedang') { timePerQuestion = 12; initialMoves = 20; }
-        else if (diff === 'tinggi') { timePerQuestion = 7; initialMoves = 15; }
+        if (diff === 'mudah') { timePerQuestion = 20; initialMoves = 25; maxLives = 3; }
+        else if (diff === 'sedang') { timePerQuestion = 12; initialMoves = 20; maxLives = 3; }
+        else if (diff === 'tinggi') { timePerQuestion = 7; initialMoves = 15; maxLives = 2; }
     }
 
     function startGame() {
         currentLevel = 1;
         score = 0;
+        lives = maxLives;
         showScreen('screen-game');
         initLevel();
     }
@@ -311,6 +320,14 @@ game_html = """
         document.getElementById('val-score').innerText = score;
         document.getElementById('val-moves').innerText = moves;
         document.getElementById('val-target').innerText = `${questionsAnswered}/${targetQuestions}`;
+        
+        // Render Hearts
+        let heartStr = "";
+        for (let i = 0; i < maxLives; i++) {
+            if (i < lives) heartStr += "❤️";
+            else heartStr += "🖤";
+        }
+        document.getElementById('val-lives').innerText = heartStr;
     }
 
     /* MATCH-3 LOGIC */
@@ -331,7 +348,7 @@ game_html = """
     }
 
     function selectTile() {
-        if (isProcessing || moves <= 0) return;
+        if (isProcessing || moves <= 0 || lives <= 0) return;
 
         if (!selectedTile) {
             selectedTile = this;
@@ -350,20 +367,27 @@ game_html = """
 
             if (validMoves.includes(secondId)) {
                 swapGems(selectedTile, this);
+                
+                // LANGKAH SELALU BERKURANG KETIKA TUKAR
                 moves--;
                 updateUI();
                 
                 setTimeout(() => {
                     let matchSymbol = checkAndClearMatches();
                     if (!matchSymbol) {
-                        swapGems(selectedTile, this); // revert swap
-                        moves++;
+                        // JIKA TIDAK MATCH: Kembalikan posisi permata, TAPI moves TIDAK dikembalikan!
+                        swapGems(selectedTile, this);
                         updateUI();
+
+                        // Cek jika langkah habis setelah swap gagal
+                        if (moves <= 0) {
+                            gameOver("💥 Langkah Kamu Habis! Hati-hati menukar permata tanpa match.");
+                        }
                     } else {
-                        // Trigger Quiz!
+                        // JIKA MATCH: Panggil Kuis!
                         triggerQuiz(matchSymbol);
                     }
-                    selectedTile.classList.remove('selected');
+                    if (selectedTile) selectedTile.classList.remove('selected');
                     selectedTile = null;
                 }, 200);
 
@@ -438,7 +462,7 @@ game_html = """
         let qList = questionsDB[currentLevel];
         let randomQ = qList[Math.floor(Math.random() * qList.length)];
 
-        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB SOAL UNTUK BONUS SKOR & MOVE`;
+        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB BENAR UNTUK BONUS SKOR + MOVES`;
         document.getElementById('quiz-question').innerText = randomQ.q;
         
         let optsDiv = document.getElementById('quiz-options');
@@ -482,8 +506,10 @@ game_html = """
 
         if (isCorrect) {
             score += 150;
-            moves += 2; // Extra bonus moves!
+            moves += 2; // Bonus +2 langkah jika benar
             questionsAnswered++;
+        } else {
+            lives--; // NYAWA BERKURANG JIKA SALAH / WAKTU HABIS
         }
 
         updateUI();
@@ -493,11 +519,13 @@ game_html = """
             fillBoard();
             isProcessing = false;
 
-            // Check Win / Lose Condition
-            if (questionsAnswered >= targetQuestions) {
+            // CEK SYARAT GAME OVER ATAU MENANG
+            if (lives <= 0) {
+                gameOver("💔 Nyawa Kamu Habis! Jawab soal kuis dengan lebih teliti.");
+            } else if (questionsAnswered >= targetQuestions) {
                 levelWin();
             } else if (moves <= 0) {
-                gameOver("Langkah Kamu Habis! Ayo coba lagi.");
+                gameOver("💥 Langkah Kamu Habis!");
             }
         }, 1000);
     }
@@ -520,7 +548,7 @@ game_html = """
 
     function gameOver(msg, isVictory = false) {
         showScreen('screen-end');
-        document.getElementById('end-title').innerText = isVictory ? "🏆 Champion Pancasila!" : "💥 Game Over";
+        document.getElementById('end-title').innerText = isVictory ? "🏆 Champion Pancasila!" : "💥 GAME OVER";
         document.getElementById('end-desc').innerText = msg;
         document.getElementById('final-score').innerText = `${score} Poin`;
 
@@ -552,15 +580,10 @@ game_html = """
 components.html(game_html, height=660, scrolling=False)
 
 # Panduan Petualangan
-with st.expander("🎮 Cara Bermain Nusantara Gem Crush: Pancasila Quest"):
+with st.expander("🎮 Cara Bermain & Aturan Baru"):
     st.write("""
-    1. **Tukar & Cocokkan Permata:** Geser/klik 2 simbol Pancasila berdampingan untuk mencocokkan **3 atau lebih simbol yang sama**.
-    2. **Picu Kuis Pancasila:** Setiap kali berhasil mencocokkan permata, **Soal Kuis Pancasila** akan muncul secara otomatis!
-    3. **Raih Bonus Jawaban Benar:** 
-       - Jawaban Benar = **+150 Poin** + **+2 Bonus Langkah (Moves)**.
-       - Jawaban Benar akan menambah progres **Target Soal** levelmu.
-    4. **Tingkat Kesulitan:**
-       - **Mudah:** Waktu Jawab 20s | 25 Langkah Awal.
-       - **Sedang:** Waktu Jawab 12s | 20 Langkah Awal.
-       - **Tinggi:** Waktu Jawab 7s | 15 Langkah Awal.
+    - **Sistem Nyawa (❤️):** Kamu memiliki 3 Nyawa. Jika salah menjawab kuis atau waktu habis, **Nyawa akan berkurang 1**.
+    - **Langkah Berkurang Saat Swap Gagal:** Setiap kali menukar permata, **1 Langkah langsung berkurang** meskipun penukaran tersebut *tidak menghasilkan match*.
+    - **Bonus Langkah (+2 Moves):** Menjawab soal kuis dengan **Benar** memberikan bonus **+2 Langkah** tambahan dan **+150 Skor**!
+    - **Game Over:** Terjadi jika **Nyawa Habis (0 ❤️)** atau **Langkah Habis (0 Moves)**.
     """)

@@ -18,8 +18,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🦅 Pengumpul Permata Nusantara: Misi Pancasila")
-st.caption("Selesaikan target soal sebelum waktu level habis, jangan sampai kehabisan langkah atau nyawa!")
+st.title("🦅 Nusantara Gem Crush: Pancasila Quest")
+st.caption("Cocokkan Permata Pancasila & Jawab Kuis Sebelum Waktu Level Habis!")
 
 # Single Bundle Engine HTML5 + CSS + JavaScript
 game_html = """
@@ -36,11 +36,11 @@ game_html = """
     body {
         margin: 0;
         padding: 10px;
-        background: linear-gradient(135deg, #600000, #2b0000);
+        background: linear-gradient(135deg, #4a0000, #1a0000);
         color: white;
         border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-        min-height: 650px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        min-height: 660px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -49,7 +49,7 @@ game_html = """
     }
     .card {
         background: rgba(255, 255, 255, 0.08);
-        border: 2px solid rgba(255, 215, 0, 0.3);
+        border: 2px solid rgba(255, 215, 0, 0.4);
         border-radius: 16px;
         padding: 20px;
         width: 100%;
@@ -57,7 +57,7 @@ game_html = """
         text-align: center;
         backdrop-filter: blur(10px);
     }
-    h2 { color: #ffd700; margin-top: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    h2 { color: #ffd700; margin-top: 0; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
     
     /* Stats Bar */
     .stats-bar {
@@ -66,11 +66,12 @@ game_html = """
         align-items: center;
         width: 100%;
         max-width: 500px;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
         padding: 8px 10px;
         border-radius: 12px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(255, 215, 0, 0.2);
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     }
     .stat-item { text-align: center; flex: 1; }
     .stat-title { font-size: 10px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
@@ -80,38 +81,101 @@ game_html = """
     #grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        grid-gap: 6px;
-        background: rgba(0, 0, 0, 0.5);
-        padding: 10px;
-        border-radius: 16px;
+        grid-gap: 8px;
+        background: rgba(15, 5, 5, 0.8);
+        padding: 12px;
+        border-radius: 18px;
         border: 2px solid #ffd700;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(0,0,0,0.8);
     }
+
+    /* === BASE PERMATA / TILE STYLING === */
     .tile {
         width: 48px;
         height: 48px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 24px;
         cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        border: 1px solid rgba(255,255,255,0.05);
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        box-shadow: inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
     }
-    .tile:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.2); }
+
+    /* Pantulan Kilau Kristal pada Permata */
+    .tile::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 4px;
+        right: 4px;
+        height: 38%;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.05));
+        border-radius: 8px 8px 100% 100%;
+        pointer-events: none;
+    }
+
+    .tile:hover {
+        transform: scale(1.12);
+        filter: brightness(1.2);
+        z-index: 5;
+    }
+
+    /* Efek Permata Terpilih */
     .tile.selected {
-        border: 2px solid #ffd700;
-        transform: scale(1.15);
-        box-shadow: 0 0 12px #ffd700;
+        border: 3px solid #ffffff !important;
+        transform: scale(1.18);
+        box-shadow: 0 0 20px #ffd700, inset 0 0 10px #ffffff !important;
+        z-index: 10;
+        animation: pulse-gem 0.8s infinite alternate;
+    }
+
+    @keyframes pulse-gem {
+        0% { filter: brightness(1); transform: scale(1.15); }
+        100% { filter: brightness(1.35); transform: scale(1.22); }
+    }
+
+    /* === WARNA & EFEK KHUSUS SETIAP PERMATA PANCASILA === */
+    .gem-topaz { 
+        background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); 
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .gem-sapphire { 
+        background: linear-gradient(135deg, #4dabf7, #1971c2, #0c365e); 
+        box-shadow: 0 0 10px rgba(25, 113, 194, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .gem-emerald { 
+        background: linear-gradient(135deg, #51cf66, #2b8a3e, #123b1a); 
+        box-shadow: 0 0 10px rgba(43, 138, 62, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .gem-ruby { 
+        background: linear-gradient(135deg, #ff6b6b, #c92a2a, #5c0b0b); 
+        box-shadow: 0 0 10px rgba(201, 42, 42, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .gem-amber { 
+        background: linear-gradient(135deg, #ffc078, #d9480f, #7a2200); 
+        box-shadow: 0 0 10px rgba(217, 72, 15, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .gem-amethyst { 
+        background: linear-gradient(135deg, #cc5de8, #862e9c, #3b0d48); 
+        box-shadow: 0 0 10px rgba(134, 46, 156, 0.7), inset -2px -3px 6px rgba(0,0,0,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
 
     /* Quiz Modal Overlay */
     .modal-overlay {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.92);
+        background: rgba(0, 0, 0, 0.93);
         border-radius: 16px;
         display: flex;
         flex-direction: column;
@@ -160,15 +224,15 @@ game_html = """
 <!-- SCREEN 1: START & DIFFICULTY -->
 <div class="card" id="screen-start">
     <h2>🦅 Nusantara Gem Crush</h2>
-    <p style="font-size: 13px;">Cocokkan Simbol Pancasila & Jawab Kuisnya!</p>
+    <p style="font-size: 13px; color: #ffe066;">Permata Pancasila Quest</p>
     
     <div style="margin: 10px 0;">
         <button class="btn btn-diff selected" onclick="setDiff('mudah', this)">🟢 Mode Normal (25 Langkah | 3 ❤️)</button><br>
         <button class="btn btn-diff" onclick="setDiff('tinggi', this)">🔴 Mode Tantangan (15 Langkah | 2 ❤️)</button>
     </div>
 
-    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; text-align: left;">
-        ⏱️ <b>Batasan Waktu Level & Soal:</b><br>
+    <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
+        💎 <b>Batasan Waktu Level & Soal:</b><br>
         • Level 1: <b>5 Menit</b> (Target: 5 Soal | 60s/soal)<br>
         • Level 2: <b>4 Menit</b> (Target: 8 Soal | 30s/soal)<br>
         • Level 3: <b>3 Menit</b> (Target: 10 Soal | 18s/soal)<br>
@@ -223,7 +287,7 @@ game_html = """
 <!-- SCREEN 3: LEVEL COMPLETE -->
 <div class="card hidden" id="screen-level-win">
     <h2>🎉 Level Selesai!</h2>
-    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan level ini tepat waktu.</p>
+    <p id="win-desc">Selamat! Kamu berhasil menuntaskan tantangan permata level ini tepat waktu.</p>
     <div style="font-size: 32px; font-weight: bold; color: #ffd700; margin: 10px 0;" id="win-score">0 Poin</div>
     <button class="btn" id="btn-next-lvl" onclick="nextLevel()">Lanjut Level Berikutnya ➡️</button>
 </div>
@@ -239,27 +303,22 @@ game_html = """
 
 <script>
     const width = 6;
-    const gems = ['⭐', '⛓️', '🌳', '🐂', '🌾', '🦅'];
     
+    // Simbol Permata Pancasila
+    const gems = ['🌟', '⛓️', '🌳', '🐂', '🌾', '🦅'];
+    const gemClasses = ['gem-topaz', 'gem-sapphire', 'gem-emerald', 'gem-ruby', 'gem-amber', 'gem-amethyst'];
+
     // Waktu Level dalam detik (Lvl 1: 5m/300s, Lvl 2: 4m/240s, Lvl 3: 3m/180s)
-    const levelTimeLimits = {
-        1: 300,
-        2: 240,
-        3: 180
-    };
+    const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
 
     // Waktu per Soal Kuis dalam detik (Lvl 1: 60s, Lvl 2: 30s, Lvl 3: 18s)
-    const questionTimeLimits = {
-        1: 60,
-        2: 30,
-        3: 18
-    };
+    const questionTimeLimits = { 1: 60, 2: 30, 3: 18 };
 
     // Database Soal Pancasila per Level
     const questionsDB = {
         1: [
-            { q: "Sila Pertama Pancasila disimbolkan dengan...", opt: ["Bintang Emas", "Rantai Emas", "Pohon Beringin", "Kepala Banteng"], ans: 0 },
-            { q: "Pohon Beringin melambangkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 2 },
+            { q: "Sila Pertama Pancasila disimbolkan dengan Permata Bintang...", opt: ["Topaz Emas", "Rantai Emas", "Pohon Beringin", "Kepala Banteng"], ans: 0 },
+            { q: "Pohon Beringin (Zamrud) melambangkan Sila ke-...", opt: ["Sila 1", "Sila 2", "Sila 3", "Sila 4"], ans: 2 },
             { q: "Bunyi Sila ke-2 adalah...", opt: ["Ketuhanan Yang Maha Esa", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia", "Keadilan Sosial"], ans: 1 },
             { q: "Simbol Padi dan Kapas melambangkan Sila ke-...", opt: ["Ketiga", "Keempat", "Kelima", "Kedua"], ans: 2 },
             { q: "Jumlah bulu pada sayap Burung Garuda Pancasila adalah...", opt: ["17", "8", "45", "19"], ans: 0 }
@@ -325,6 +384,19 @@ game_html = """
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
+    function applyGemStyle(tile) {
+        const symbol = tile.innerText;
+        const index = gems.indexOf(symbol);
+        
+        // Bersihkan kelas permata terdahulu
+        gemClasses.forEach(cls => tile.classList.remove(cls));
+        
+        // Terapkan kelas permata baru
+        if (index !== -1) {
+            tile.classList.add(gemClasses[index]);
+        }
+    }
+
     function startGame() {
         currentLevel = 1;
         score = 0;
@@ -337,7 +409,6 @@ game_html = """
         moves = initialMoves;
         questionsAnswered = 0;
         
-        // Setting Target Soal & Waktu per Soal sesuai Level
         if (currentLevel === 1) targetQuestions = 5;
         else if (currentLevel === 2) targetQuestions = 8;
         else if (currentLevel === 3) targetQuestions = 10;
@@ -372,7 +443,6 @@ game_html = """
         document.getElementById('val-target').innerText = `${questionsAnswered}/${targetQuestions}`;
         document.getElementById('val-level-time').innerText = formatTime(levelTimeLeft);
         
-        // Render Hearts
         let heartStr = "";
         for (let i = 0; i < maxLives; i++) {
             if (i < lives) heartStr += "❤️";
@@ -392,6 +462,7 @@ game_html = """
             let randomGem = gems[Math.floor(Math.random() * gems.length)];
             tile.innerText = randomGem;
             tile.addEventListener('click', selectTile);
+            applyGemStyle(tile);
             board.appendChild(tile);
             grid.push(tile);
         }
@@ -419,14 +490,12 @@ game_html = """
             if (validMoves.includes(secondId)) {
                 swapGems(selectedTile, this);
                 
-                // LANGKAH SELALU BERKURANG KETIKA TUKAR
                 moves--;
                 updateUI();
                 
                 setTimeout(() => {
                     let matchSymbol = checkAndClearMatches();
                     if (!matchSymbol) {
-                        // SWAP GAGAL: Kembalikan permata, moves tetap berkurang
                         swapGems(selectedTile, this);
                         updateUI();
 
@@ -434,7 +503,6 @@ game_html = """
                             gameOver("💥 Langkah Kamu Habis! Hati-hati menukar permata tanpa match.");
                         }
                     } else {
-                        // MATCH BERHASIL: Panggil Kuis
                         triggerQuiz(matchSymbol);
                     }
                     if (selectedTile) selectedTile.classList.remove('selected');
@@ -453,6 +521,8 @@ game_html = """
         let temp = tile1.innerText;
         tile1.innerText = tile2.innerText;
         tile2.innerText = temp;
+        applyGemStyle(tile1);
+        applyGemStyle(tile2);
     }
 
     function checkAndClearMatches() {
@@ -464,7 +534,10 @@ game_html = """
                 let row = [i, i+1, i+2];
                 let decided = grid[i].innerText;
                 if (decided !== '' && row.every(idx => grid[idx].innerText === decided)) {
-                    row.forEach(idx => grid[idx].innerText = '');
+                    row.forEach(idx => {
+                        grid[idx].innerText = '';
+                        applyGemStyle(grid[idx]);
+                    });
                     score += 50;
                     matchedSymbol = decided;
                 }
@@ -476,7 +549,10 @@ game_html = """
             let col = [i, i+width, i+width*2];
             let decided = grid[i].innerText;
             if (decided !== '' && col.every(idx => grid[idx].innerText === decided)) {
-                col.forEach(idx => grid[idx].innerText = '');
+                col.forEach(idx => {
+                    grid[idx].innerText = '';
+                    applyGemStyle(grid[idx]);
+                });
                 score += 50;
                 matchedSymbol = decided;
             }
@@ -490,8 +566,10 @@ game_html = """
             if (grid[i].innerText === '') {
                 for (let k = i; k >= width; k -= width) {
                     grid[k].innerText = grid[k - width].innerText;
+                    applyGemStyle(grid[k]);
                 }
                 grid[i % width].innerText = gems[Math.floor(Math.random() * gems.length)];
+                applyGemStyle(grid[i % width]);
             }
         }
     }
@@ -499,7 +577,10 @@ game_html = """
     function checkMatchesSilently() {
         while (checkAndClearMatches()) {
             for (let i = 0; i < width * width; i++) {
-                if (grid[i].innerText === '') grid[i].innerText = gems[Math.floor(Math.random() * gems.length)];
+                if (grid[i].innerText === '') {
+                    grid[i].innerText = gems[Math.floor(Math.random() * gems.length)];
+                    applyGemStyle(grid[i]);
+                }
             }
         }
         score = 0;
@@ -512,7 +593,7 @@ game_html = """
         let qList = questionsDB[currentLevel];
         let randomQ = qList[Math.floor(Math.random() * qList.length)];
 
-        document.getElementById('modal-tag').innerText = `MATCH ${symbol}! JAWAB BENAR (${timePerQuestion}s) UNTUK BONUS SKOR + MOVES`;
+        document.getElementById('modal-tag').innerText = `MATCH PERMATA ${symbol}! JAWAB BENAR (${timePerQuestion}s) UNTUK BONUS SKOR + MOVES`;
         document.getElementById('quiz-question').innerText = randomQ.q;
         
         let optsDiv = document.getElementById('quiz-options');
@@ -556,10 +637,10 @@ game_html = """
 
         if (isCorrect) {
             score += 150;
-            moves += 2; // Bonus +2 langkah
+            moves += 2;
             questionsAnswered++;
         } else {
-            lives--; // Nyawa berkurang jika salah/kehabisan waktu
+            lives--;
         }
 
         updateUI();
@@ -586,7 +667,7 @@ game_html = """
             document.getElementById('win-score').innerText = `${score} Poin`;
             document.getElementById('btn-next-lvl').innerText = `Lanjut ke Level ${currentLevel + 1} ➡️`;
         } else {
-            gameOver("SELAMAT! Kamu berhasil menamatkan seluruh Tantangan Pancasila!", true);
+            gameOver("SELAMAT! Kamu berhasil menamatkan seluruh Tantangan Permata Pancasila!", true);
         }
     }
 
@@ -635,13 +716,17 @@ game_html = """
 components.html(game_html, height=670, scrolling=False)
 
 # Panduan Petualangan
-with st.expander("🎮 Aturan Permainan & Batasan Waktu"):
+with st.expander("💎 Koleksi Permata Pancasila & Aturan Game"):
     st.write("""
+    - **Tipe Permata Pancasila:**
+      - 🌟 **Topaz Emas:** Bintang Pancasila (Sila 1)
+      - ⛓️ **Safir Biru:** Rantai Pancasila (Sila 2)
+      - 🌳 **Zamrud Hijau:** Pohon Beringin (Sila 3)
+      - 🐂 **Rubi Merah:** Kepala Banteng (Sila 4)
+      - 🌾 **Amber Oranye:** Padi & Kapas (Sila 5)
+      - 🦅 **Ametis Ungu:** Lambang Garuda Pancasila
     - **Batasan Waktu Level & Soal:**
-      - **Level 1:** ⏳ 5 Menit — Target: **5 Soal** (Waktu Soal: **60 Detik/soal**)
-      - **Level 2:** ⏳ 4 Menit — Target: **8 Soal** (Waktu Soal: **30 Detik/soal**)
-      - **Level 3:** ⏳ 3 Menit — Target: **10 Soal** (Waktu Soal: **18 Detik/soal**)
-    - **Sistem Nyawa (❤️):** Memiliki 2–3 Nyawa. Salah kuis atau kehabisan waktu per soal = **-1 Nyawa**.
-    - **Sistem Langkah:** Swap gagal tanpa match **tetap mengurangi 1 langkah**. Menjawab kuis dengan benar memberikan bonus **+2 Langkah**.
-    - **Kondisi Game Over:** Terjadi jika **Waktu Level Habis (00:00)**, **Nyawa Habis (0 ❤️)**, atau **Langkah Habis (0 Moves)**.
+      - **Level 1:** ⏳ 5 Menit — Target: **5 Soal** (60 Detik/soal)
+      - **Level 2:** ⏳ 4 Menit — Target: **8 Soal** (30 Detik/soal)
+      - **Level 3:** ⏳ 3 Menit — Target: **10 Soal** (18 Detik/soal)
     """)

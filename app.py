@@ -12,7 +12,6 @@ st.set_page_config(
 # Custom Styling CSS Streamlit untuk Tampilan Layar Penuh (Full Screen Mobile)
 st.markdown("""
     <style>
-    /* Sembunyikan Header/Footer Streamlit & Optimasi Margin Layar */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -34,7 +33,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Single Bundle Engine HTML5 + CSS + JavaScript (Mobile & Desktop Responsive)
+# Single Bundle Engine HTML5 + CSS + JavaScript (Mobile Responsive & Auto-Match Cascade)
 game_html = """
 <!DOCTYPE html>
 <html lang="id">
@@ -127,7 +126,7 @@ game_html = """
         justify-content: center;
         font-size: clamp(18px, 5.5vw, 26px);
         cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+        transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.15s, filter 0.15s;
         border: 1.5px solid rgba(255, 255, 255, 0.35);
         box-shadow: inset -2px -3px 5px rgba(0,0,0,0.6), inset 2px 2px 4px rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.4);
         position: relative;
@@ -158,6 +157,13 @@ game_html = """
         box-shadow: 0 0 18px #ffd700, inset 0 0 8px #ffffff !important;
         z-index: 10;
         animation: pulse-gem 0.8s infinite alternate;
+    }
+
+    /* Animasi Permata Menghilang ketika Match */
+    .tile.matched-pop {
+        transform: scale(0) rotate(180deg) !important;
+        opacity: 0 !important;
+        filter: brightness(2) !important;
     }
 
     @keyframes pulse-gem {
@@ -372,6 +378,10 @@ game_html = """
     let selectedTile = null;
     let isProcessing = false;
 
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     function setDiff(diff, btn) {
         selectedDiff = diff;
         document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('selected'));
@@ -452,7 +462,7 @@ game_html = """
         document.getElementById('val-lives').innerText = heartStr;
     }
 
-    /* MATCH-3 LOGIC */
+    /* MATCH-3 BOARD ENGINE */
     function createBoard() {
         grid = [];
         board.innerHTML = '';
@@ -470,15 +480,20 @@ game_html = """
         checkMatchesSilently();
     }
 
-    function selectTile() {
+    async function selectTile() {
         if (isProcessing || moves <= 0 || lives <= 0 || levelTimeLeft <= 0) return;
 
         if (!selectedTile) {
             selectedTile = this;
             selectedTile.classList.add('selected');
         } else {
-            let firstId = parseInt(selectedTile.id);
-            let secondId = parseInt(this.id);
+            let firstTile = selectedTile;
+            let secondTile = this;
+            let firstId = parseInt(firstTile.id);
+            let secondId = parseInt(secondTile.id);
+
+            selectedTile.classList.remove('selected');
+            selectedTile = null;
 
             let validMoves = [
                 firstId - 1, firstId + 1,
@@ -489,31 +504,22 @@ game_html = """
             if ((firstId + 1) % width === 0 && secondId === firstId + 1) validMoves = validMoves.filter(x => x !== secondId);
 
             if (validMoves.includes(secondId)) {
-                swapGems(selectedTile, this);
-                
-                moves--;
-                updateUI();
-                
-                setTimeout(() => {
-                    let matchSymbol = checkAndClearMatches();
-                    if (!matchSymbol) {
-                        swapGems(selectedTile, this);
-                        updateUI();
+                isProcessing = true;
+                swapGems(firstTile, secondTile);
 
-                        if (moves <= 0) {
-                            gameOver("💥 Langkah Kamu Habis! Hati-hati menukar permata tanpa match.");
-                        }
-                    } else {
-                        triggerQuiz(matchSymbol);
-                    }
-                    if (selectedTile) selectedTile.classList.remove('selected');
-                    selectedTile = null;
-                }, 200);
+                let matchInfo = findAndMarkMatches();
 
-            } else {
-                selectedTile.classList.remove('selected');
-                selectedTile = this;
-                selectedTile.classList.add('selected');
+                if (matchInfo.matchedIndices.length === 0) {
+                    // Jika tidak ada match, kembalikan permata ke posisi semula
+                    await sleep(200);
+                    swapGems(firstTile, secondTile);
+                    isProcessing = false;
+                } else {
+                    // Move Valid!
+                    moves--;
+                    updateUI();
+                    await handleCascadeAndQuiz(matchInfo);
+                }
             }
         }
     }
@@ -526,63 +532,121 @@ game_html = """
         applyGemStyle(tile2);
     }
 
-    function checkAndClearMatches() {
+    /* METODE AUTO-MATCH, AUTO-CLEAR & SKOR OTOMATIS */
+    function findAndMarkMatches() {
+        let matchedIndices = new Set();
         let matchedSymbol = null;
 
         // Cek Horisontal
-        for (let i = 0; i < width * width; i++) {
-            if (i % width < width - 2) {
-                let row = [i, i+1, i+2];
-                let decided = grid[i].innerText;
-                if (decided !== '' && row.every(idx => grid[idx].innerText === decided)) {
-                    row.forEach(idx => {
-                        grid[idx].innerText = '';
-                        applyGemStyle(grid[idx]);
-                    });
-                    score += 50;
-                    matchedSymbol = decided;
+        for (let r = 0; r < width; r++) {
+            for (let c = 0; c < width - 2; c++) {
+                let idx1 = r * width + c;
+                let idx2 = r * width + (c + 1);
+                let idx3 = r * width + (c + 2);
+                let sym1 = grid[idx1].innerText;
+                if (sym1 !== '' && sym1 === grid[idx2].innerText && sym1 === grid[idx3].innerText) {
+                    matchedIndices.add(idx1);
+                    matchedIndices.add(idx2);
+                    matchedIndices.add(idx3);
+                    matchedSymbol = sym1;
                 }
             }
         }
 
         // Cek Vertikal
-        for (let i = 0; i < width * (width - 2); i++) {
-            let col = [i, i+width, i+width*2];
-            let decided = grid[i].innerText;
-            if (decided !== '' && col.every(idx => grid[idx].innerText === decided)) {
-                col.forEach(idx => {
-                    grid[idx].innerText = '';
-                    applyGemStyle(grid[idx]);
-                });
-                score += 50;
-                matchedSymbol = decided;
+        for (let c = 0; c < width; c++) {
+            for (let r = 0; r < width - 2; r++) {
+                let idx1 = r * width + c;
+                let idx2 = (r + 1) * width + c;
+                let idx3 = (r + 2) * width + c;
+                let sym1 = grid[idx1].innerText;
+                if (sym1 !== '' && sym1 === grid[idx2].innerText && sym1 === grid[idx3].innerText) {
+                    matchedIndices.add(idx1);
+                    matchedIndices.add(idx2);
+                    matchedIndices.add(idx3);
+                    matchedSymbol = sym1;
+                }
             }
         }
 
-        return matchedSymbol;
+        return { matchedIndices: Array.from(matchedIndices), matchedSymbol };
     }
 
-    function fillBoard() {
-        for (let i = 0; i < width * width; i++) {
-            if (grid[i].innerText === '') {
-                for (let k = i; k >= width; k -= width) {
-                    grid[k].innerText = grid[k - width].innerText;
-                    applyGemStyle(grid[k]);
+    function dropGems() {
+        for (let c = 0; c < width; c++) {
+            let colGems = [];
+            for (let r = width - 1; r >= 0; r--) {
+                let idx = r * width + c;
+                if (grid[idx].innerText !== '') {
+                    colGems.push(grid[idx].innerText);
                 }
-                grid[i % width].innerText = gems[Math.floor(Math.random() * gems.length)];
-                applyGemStyle(grid[i % width]);
             }
+            for (let r = width - 1; r >= 0; r--) {
+                let idx = r * width + c;
+                if (colGems.length > 0) {
+                    grid[idx].innerText = colGems.shift();
+                } else {
+                    grid[idx].innerText = gems[Math.floor(Math.random() * gems.length)];
+                }
+                applyGemStyle(grid[idx]);
+            }
+        }
+    }
+
+    async function handleCascadeAndQuiz(initialMatchInfo) {
+        let currentMatch = initialMatchInfo;
+        let combo = 1;
+        let mainMatchedSymbol = initialMatchInfo.matchedSymbol;
+
+        while (currentMatch.matchedIndices.length > 0) {
+            // 1. Animasi Menghilang & Tambah Skor
+            currentMatch.matchedIndices.forEach(idx => {
+                grid[idx].classList.add('matched-pop');
+            });
+
+            // Tambah skor otomatis per permata (+30 poin per permata dikali Combo)
+            let points = currentMatch.matchedIndices.length * 30 * combo;
+            score += points;
+            updateUI();
+
+            await sleep(300); // Tunggu durasi animasi menghilang
+
+            // Kosongkan Teks Permata yang Cocok
+            currentMatch.matchedIndices.forEach(idx => {
+                grid[idx].innerText = '';
+                grid[idx].classList.remove('matched-pop');
+                applyGemStyle(grid[idx]);
+            });
+
+            await sleep(150);
+
+            // 2. Permata di Atas Jatuh Mengisi Kotak Kosong
+            dropGems();
+            await sleep(250);
+
+            // 3. Cek apakah ada pencocokan baru secara beruntun (Combo)
+            currentMatch = findAndMarkMatches();
+            if (currentMatch.matchedIndices.length > 0) {
+                combo++;
+            }
+        }
+
+        // Setelah semua permata yang cocok selesai dibersihkan & diisi:
+        if (mainMatchedSymbol) {
+            triggerQuiz(mainMatchedSymbol);
+        } else {
+            isProcessing = false;
         }
     }
 
     function checkMatchesSilently() {
-        while (checkAndClearMatches()) {
-            for (let i = 0; i < width * width; i++) {
-                if (grid[i].innerText === '') {
-                    grid[i].innerText = gems[Math.floor(Math.random() * gems.length)];
-                    applyGemStyle(grid[i]);
-                }
-            }
+        let matchInfo = findAndMarkMatches();
+        while (matchInfo.matchedIndices.length > 0) {
+            matchInfo.matchedIndices.forEach(idx => {
+                grid[idx].innerText = gems[Math.floor(Math.random() * gems.length)];
+                applyGemStyle(grid[idx]);
+            });
+            matchInfo = findAndMarkMatches();
         }
         score = 0;
         updateUI();
@@ -590,7 +654,6 @@ game_html = """
 
     /* QUIZ SYSTEM */
     function triggerQuiz(symbol) {
-        isProcessing = true;
         let qList = questionsDB[currentLevel];
         let randomQ = qList[Math.floor(Math.random() * qList.length)];
 
@@ -648,7 +711,6 @@ game_html = """
 
         setTimeout(() => {
             document.getElementById('quiz-modal').classList.add('hidden');
-            fillBoard();
             isProcessing = false;
 
             if (lives <= 0) {

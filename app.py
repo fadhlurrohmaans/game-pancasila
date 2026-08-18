@@ -62,7 +62,9 @@ game_html = """
     }
     body {
         padding: 8px;
-        background: linear-gradient(135deg, #4a0000, #1a0000);
+        background: linear-gradient(-45deg, #4a0000, #1a0000, #310015, #0a0002);
+        background-size: 400% 400%;
+        animation: gradientBg 12s ease infinite;
         color: white;
         display: flex;
         flex-direction: column;
@@ -70,22 +72,37 @@ game_html = """
         justify-content: center;
         min-height: 100vh;
     }
+
+    @keyframes gradientBg {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
     .card {
         background: rgba(255, 255, 255, 0.08);
-        border: 2px solid rgba(255, 215, 0, 0.4);
+        border: 2px solid rgba(255, 215, 0, 0.5);
         border-radius: 16px;
         padding: 16px;
         width: 100%;
         max-width: 480px;
         text-align: center;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15), 0 8px 25px rgba(0,0,0,0.8);
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
     h2 { 
         color: #ffd700;
         margin-top: 0; 
         font-size: clamp(20px, 5vw, 26px);
-        text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 2px 6px rgba(0,0,0,0.8);
+        animation: glowHeader 2.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowHeader {
+        0% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700; }
+        100% { text-shadow: 0 0 15px #ffd700, 0 0 25px #ff4500, 0 0 35px #ff4500; }
     }
     
     .input-field {
@@ -99,10 +116,11 @@ game_html = """
         outline: none;
         margin-top: 4px;
         margin-bottom: 12px;
+        transition: all 0.3s ease;
     }
     .input-field:focus {
         border-color: #ffd700;
-        box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+        box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
     }
 
     .stats-bar {
@@ -111,12 +129,12 @@ game_html = """
         gap: 4px;
         width: 100%;
         max-width: 480px;
-        background: rgba(0,0,0,0.65);
+        background: rgba(0,0,0,0.75);
         padding: 8px 4px;
         border-radius: 12px;
         margin-bottom: 10px;
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(255, 215, 0, 0.1);
     }
     .stat-item { text-align: center; }
     .stat-title { font-size: 9px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
@@ -128,11 +146,12 @@ game_html = """
         gap: 6px;
         width: 100%;
         max-width: 480px;
-        background: rgba(15, 5, 5, 0.85);
+        background: rgba(15, 5, 5, 0.9);
         padding: 8px;
         border-radius: 16px;
         border: 2px solid #ffd700;
-        box-shadow: 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(0,0,0,0.8);
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.35), inset 0 0 15px rgba(0,0,0,0.9);
+        position: relative;
     }
 
     .tile {
@@ -144,9 +163,9 @@ game_html = """
         justify-content: center;
         font-size: clamp(18px, 5.5vw, 26px);
         cursor: pointer;
-        transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.15s, filter 0.15s;
-        border: 1.5px solid rgba(255, 255, 255, 0.35);
-        box-shadow: inset -2px -3px 5px rgba(0,0,0,0.6), inset 2px 2px 4px rgba(255,255,255,0.6), 0 3px 6px rgba(0,0,0,0.4);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease, filter 0.15s;
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        box-shadow: inset -2px -3px 5px rgba(0,0,0,0.6), inset 2px 2px 4px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.5);
         position: relative;
         overflow: hidden;
     }
@@ -158,30 +177,31 @@ game_html = """
         left: 3px;
         right: 3px;
         height: 38%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.05));
+        background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0.05));
         border-radius: 6px 6px 100% 100%;
         pointer-events: none;
     }
 
-    .tile:active { transform: scale(0.92); }
+    .tile:active { transform: scale(0.9); }
 
     .tile.selected {
-        border: 2px solid #ffffff !important;
-        transform: scale(1.12);
-        box-shadow: 0 0 18px #ffd700, inset 0 0 8px #ffffff !important;
+        border: 2.5px solid #ffffff !important;
+        transform: scale(1.15);
+        box-shadow: 0 0 22px #ffd700, 0 0 10px #ffffff, inset 0 0 10px #ffffff !important;
         z-index: 10;
-        animation: pulse-gem 0.8s infinite alternate;
+        animation: pulse-gem 0.6s infinite alternate ease-in-out;
     }
 
     .tile.matched-pop {
-        transform: scale(0) rotate(180deg) !important;
+        transform: scale(1.4) rotate(180deg) !important;
         opacity: 0 !important;
-        filter: brightness(2) !important;
+        filter: brightness(2.5) drop-shadow(0 0 15px #ffd700) !important;
+        transition: all 0.3s ease-out;
     }
 
     @keyframes pulse-gem {
         0% { filter: brightness(1); transform: scale(1.08); }
-        100% { filter: brightness(1.35); transform: scale(1.15); }
+        100% { filter: brightness(1.4); transform: scale(1.18); }
     }
 
     .gem-topaz { background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); }
@@ -195,53 +215,74 @@ game_html = """
         position: fixed;
         top: 0; left: 0;
         right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.94);
+        background: rgba(0, 0, 0, 0.92);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding: 16px;
         z-index: 100;
+        backdrop-filter: blur(8px);
     }
+    .modal-overlay > div {
+        animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
     .timer-bar-container {
         width: 100%;
-        height: 6px;
+        height: 8px;
         background: rgba(255,255,255,0.2);
-        border-radius: 3px;
+        border-radius: 4px;
         overflow: hidden;
         margin-bottom: 12px;
+        box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
     }
-    .timer-bar { height: 100%; background: #ffd700; width: 100%; }
+    .timer-bar { 
+        height: 100%; 
+        background: linear-gradient(90deg, #ff4500, #ffd700); 
+        width: 100%; 
+        box-shadow: 0 0 10px #ffd700;
+    }
     
     .btn {
         background: linear-gradient(45deg, #d32f2f, #b71c1c);
-        color: white; border: 1px solid #ffd700;
+        color: white; border: 1.5px solid #ffd700;
         padding: 12px 20px; font-size: 15px; font-weight: bold;
-        border-radius: 25px; cursor: pointer; transition: all 0.2s;
+        border-radius: 25px; cursor: pointer; 
+        transition: all 0.25s ease;
         margin: 6px;
         width: 100%;
         max-width: 300px;
+        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4), 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(211, 47, 47, 0.6), 0 0 15px rgba(255, 215, 0, 0.5);
     }
     .btn:active { transform: scale(0.96); }
 
     .opt-btn {
         background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         color: white; padding: 12px; border-radius: 10px;
         text-align: left; font-size: 13px; cursor: pointer;
         margin-bottom: 8px;
         width: 100%; transition: all 0.2s;
     }
-    .opt-btn:active { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
-    .opt-btn.correct { background: #2e7d32 !important; }
-    .opt-btn.wrong { background: #c62828 !important; }
+    .opt-btn:hover {
+        background: rgba(255, 215, 0, 0.25);
+        border-color: #ffd700;
+    }
+    .opt-btn:active { background: rgba(255, 215, 0, 0.4); border-color: #ffd700; }
+    .opt-btn.correct { background: #2e7d32 !important; box-shadow: 0 0 15px #4caf50; }
+    .opt-btn.wrong { background: #c62828 !important; box-shadow: 0 0 15px #f44336; }
 
     .hidden { display: none !important; }
 
-    /* STYLING TABEL LEADERBOARD GLOBAL */
+    /* TABEL LEADERBOARD GLOBAL */
     .leaderboard-box {
         margin-top: 14px;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.55);
         padding: 10px;
         border-radius: 12px;
         border: 1px solid rgba(255, 215, 0, 0.35);
@@ -271,6 +312,39 @@ game_html = """
     .leaderboard-table tr:nth-child(1) td { color: #ffd700; font-weight: bold; }
     .leaderboard-table tr:nth-child(2) td { color: #e0e0e0; font-weight: bold; }
     .leaderboard-table tr:nth-child(3) td { color: #cd7f32; font-weight: bold; }
+
+    /* ANIMASI DYNAMIC LENGKAP */
+    @keyframes popIn {
+        from { opacity: 0; transform: scale(0.85); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .shake {
+        animation: shakeAnim 0.35s ease-in-out;
+    }
+    @keyframes shakeAnim {
+        0%, 100% { transform: translate(0, 0); }
+        20% { transform: translate(-8px, 4px); }
+        40% { transform: translate(8px, -4px); }
+        60% { transform: translate(-5px, 2px); }
+        80% { transform: translate(5px, -2px); }
+    }
+
+    .floating-text {
+        position: absolute;
+        font-weight: 900;
+        font-size: 22px;
+        color: #ffd700;
+        text-shadow: 0 0 10px #ff9f43, 0 0 20px #ff4500, 0 2px 4px #000;
+        pointer-events: none;
+        animation: floatUp 0.85s ease-out forwards;
+        z-index: 999;
+    }
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translateY(0) scale(0.8); }
+        50% { opacity: 1; transform: translateY(-25px) scale(1.3); }
+        100% { opacity: 0; transform: translateY(-50px) scale(1); }
+    }
 </style>
 </head>
 <body>
@@ -341,7 +415,7 @@ game_html = """
 </div>
 
 <div class="modal-overlay hidden" id="quiz-modal">
-    <div style="width: 100%; max-width: 440px; text-align: center;">
+    <div style="width: 100%; max-width: 440px; text-align: center;" class="card">
         <div style="font-size: 11px; color: #ffd700; font-weight: bold;" id="modal-tag">KUIS KELAHIRAN PANCASILA</div>
         <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
         <h3 id="quiz-question" style="font-size: 14px; margin: 10px 0 15px 0; min-height: 40px; line-height: 1.4;">Pertanyaan...</h3>
@@ -374,19 +448,15 @@ game_html = """
 </div>
 
 <script>
-    // ================================================================
-    // ⚙️ KONFIGURASI FIREBASE REALTIME DATABASE (TOP SKOR GLOBAL)
-    // Silakan ganti kredensial di bawah ini dengan milik Firebase Anda!
-    // ================================================================
     const firebaseConfig = {
        apiKey: "AIzaSyAp3nx1FKqL9FxwKDqMUBk-OXgePUXyn0w",
-    authDomain: "gamepancasila.firebaseapp.com",
-    databaseURL: "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "gamepancasila",
-    storageBucket: "gamepancasila.firebasestorage.app",
-    messagingSenderId: "780384650353",
-    appId: "1:780384650353:web:d72fd5c121c01089bdc7d0",
-    measurementId: "G-B4GPSRKP6B"
+       authDomain: "gamepancasila.firebaseapp.com",
+       databaseURL: "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app",
+       projectId: "gamepancasila",
+       storageBucket: "gamepancasila.firebasestorage.app",
+       messagingSenderId: "780384650353",
+       appId: "1:780384650353:web:d72fd5c121c01089bdc7d0",
+       measurementId: "G-B4GPSRKP6B"
     };
 
     let db = null;
@@ -399,7 +469,6 @@ game_html = """
         console.warn("Firebase belum diatur / bermasalah:", e);
     }
 
-    // Fungsi Mengirim Skor ke Database Global
     function submitGlobalScore(nama, kelas, totalSkor) {
         if (!db || totalSkor <= 0) return;
         try {
@@ -414,7 +483,6 @@ game_html = """
         }
     }
 
-    // Fungsi Mengambil & Menampilkan Top Skor Global
     function fetchGlobalLeaderboard() {
         const startList = document.getElementById('leaderboard-start-list');
         const endList = document.getElementById('leaderboard-end-list');
@@ -432,7 +500,7 @@ game_html = """
                 snapshot.forEach((child) => {
                     data.push(child.val());
                 });
-                data.reverse(); // Urutkan dari tertinggi ke terendah
+                data.reverse();
 
                 if (data.length === 0) {
                     const emptyMsg = "<p style='font-size:11px; color:#aaa;'>Belum ada skor tercatat. Jadilah yang pertama!</p>";
@@ -472,9 +540,6 @@ game_html = """
         }
     }
 
-    // ================================================================
-    // LOGIKA GAME SCRIPT
-    // ================================================================
     const width = 6;
     const gems = ['🌟', '⛓️', '🌳', '🐂', '🌾', '🦅'];
     const gemClasses = ['gem-topaz', 'gem-sapphire', 'gem-emerald', 'gem-ruby', 'gem-amber', 'gem-amethyst'];
@@ -482,7 +547,6 @@ game_html = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
-    // Bank Soal Kuis (BPUPK, Panitia 9, PPKI)
     const questionsDB = {
         1: [
             { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
@@ -525,6 +589,25 @@ game_html = """
     let isProcessing = false;
 
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function triggerShake(element = board) {
+        element.classList.remove('shake');
+        void element.offsetWidth; // Force reflow
+        element.classList.add('shake');
+    }
+
+    function spawnFloatingText(targetTile, text, color = '#ffd700') {
+        const rect = targetTile.getBoundingClientRect();
+        const floatEl = document.createElement('div');
+        floatEl.className = 'floating-text';
+        floatEl.innerText = text;
+        floatEl.style.color = color;
+        floatEl.style.left = `${rect.left + rect.width / 2 - 20}px`;
+        floatEl.style.top = `${rect.top + rect.height / 2 - 10}px`;
+        document.body.appendChild(floatEl);
+
+        setTimeout(() => floatEl.remove(), 850);
+    }
 
     function formatTime(seconds) {
         let mins = Math.floor(seconds / 60);
@@ -673,7 +756,6 @@ game_html = """
         let matchedIndices = new Set();
         let matchedSymbol = "";
 
-        // Baris
         for (let r = 0; r < width; r++) {
             for (let c = 0; c < width - 2; c++) {
                 let idx = r * width + c;
@@ -685,7 +767,6 @@ game_html = """
             }
         }
 
-        // Kolom
         for (let c = 0; c < width; c++) {
             for (let r = 0; r < width - 2; r++) {
                 let idx = r * width + c;
@@ -726,11 +807,17 @@ game_html = """
         let combo = 1;
 
         while (currentMatch.matchedIndices.length > 0) {
+            triggerShake();
+            
+            // Spawn floating score text at center tile of match
+            const firstIdx = currentMatch.matchedIndices[0];
+            const points = currentMatch.matchedIndices.length * 30 * combo;
+            spawnFloatingText(grid[firstIdx], combo > 1 ? `COMBO x${combo}! +${points}` : `+${points}`);
+
             currentMatch.matchedIndices.forEach(idx => {
                 grid[idx].classList.add('matched-pop');
             });
 
-            let points = currentMatch.matchedIndices.length * 30 * combo;
             score += points;
             updateUI();
 
@@ -810,6 +897,7 @@ game_html = """
                 updateUI();
             } else {
                 lives--;
+                triggerShake(document.body);
                 updateUI();
                 if (lives <= 0) {
                     gameOver("💀 Nyawa Kamu Habis!");
@@ -844,7 +932,6 @@ game_html = """
         initLevel();
     }
 
-    // FUNGSI GAME OVER & SIMPAN SKOR GLOBAL
     function gameOver(msg, isVictory = false) {
         clearInterval(levelTimerInterval);
         clearInterval(quizTimerInterval);
@@ -862,12 +949,10 @@ game_html = """
 
         document.getElementById('final-rank').innerText = rank;
 
-        // KIRIM SKOR KE LEADERBOARD GLOBAL IF SKOR > 0
         if (score > 0 && playerNama) {
             submitGlobalScore(playerNama, playerKelas, score);
         }
         
-        // REFRESH TABEL LEADERBOARD
         fetchGlobalLeaderboard();
     }
 
@@ -886,7 +971,6 @@ game_html = """
         });
     }
 
-    // Muat leaderboard saat pertama kali aplikasi dibuka
     window.onload = fetchGlobalLeaderboard;
 </script>
 </body>

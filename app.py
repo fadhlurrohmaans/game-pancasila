@@ -364,7 +364,6 @@ game_html = """
     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
         📜 <b>Materi & Aturan Main:</b><br>
         • Materi: <b>BPUPK (Lvl 1), Panitia 9 (Lvl 2), PPKI (Lvl 3)</b>.<br>
-        • Sistem <b>Anti-Duplikasi Soal</b> aktif (soal acak tanpa pengulangan).<br>
         • Modal: <b>25 Moves</b> & <b>3 Nyawa (❤️)</b> per Level.<br>
         • Jawaban Salah / Waktu Habis = <b>Nyawa (❤️) Berkurang 1</b>.
     </div>
@@ -550,20 +549,32 @@ game_html = """
     // BANK SOAL DENGAN Rincian KEDALAMAN HISTORIS TINGGI
     const questionsDB = {
         1: [
-            { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
-            { q: "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", opt: ["28 Mei 1945", "1 Maret 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 0 },
-            { q: "Siapakah Ketua (Kaichou) utama dari BPUPK?", opt: ["Dr. K.R.T. Radjiman Wedyodiningrat", "Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Soepomo"], ans: 0 },
-            { q: "Nama BPUPK dalam bahasa Jepang dinamakan...", opt: ["Dokuritsu Junbi Cosakai", "Dokuritsu Junbi Inkai", "Heiho", "Rikugun"], ans: 0 },
-            { q: "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", opt: ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], ans: 0 },
-            { q: "Tokoh Indonesia yang menjabat sebagai Wakil Ketua BPUPK mendampingi perwakilan Jepang adalah...", opt: ["R.P. Soeroso", "Mr. Mohammad Yamin", "K.H. A. Wahid Hasjim", "Achmad Soebardjo"], ans: 0 },
-            { q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["29 Mei - 1 Juni 1945", "10 - 17 Juli 1945", "22 - 25 Juni 1945", "17 - 18 Agustus 1945"], ans: 0 },
-            { q: "Sidang Pertama BPUPK diselenggarakan di gedung Chuo Sangi In, yang saat ini dikenal sebagai...", opt: ["Gedung Pancasila", "Gedung Merdeka", "Gedung Agung", "Istana Negara"], ans: 0 },
-            { q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 },
-            { q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Mohammad Yamin", "Mr. Soepomo", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 0 },
-            { q: "Berapa total seluruh anggota BPUPK saat dilantik pada 28 Mei 1945 (termasuk anggota aktif dan pasif perwakilan Jepang)?", opt: ["67 Orang", "60 Orang", "62 Orang", "74 Orang"], ans: 0 },
-            { q: "Dalam pidato tanggal 31 Mei 1945, Prof. Dr. Mr. Soepomo menyampaikan 5 asas dasar negara. Asas ke-3 yang beliau sebutkan adalah...", opt: ["Keseimbangan Lahir dan Batin", "Musyawarah", "Persatuan", "Keadilan Rakyat"], ans: 0 },
-            { q: "Anggota BPUPK yang menyampaikan konsep dasar negara pada tanggal 30 Mei 1945 dalam pemikiran tertulis/lisan mengenai paham kebangsaan adalah...", opt: ["Drs. Mohammad Hatta", "Mr. A.A. Maramis", "Ki Bagoes Hadikoesoemo", "Sukarni"], ans: 0 }
-        ],
+{ q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
+{ q: "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", opt: ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 1 },
+{ q: "Siapakah Ketua (Kaichou) utama dari BPUPK?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], ans: 2 },
+{ q: "Nama BPUPK dalam bahasa Jepang dinamakan...", opt: ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], ans: 3 },
+{ q: "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", opt: ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], ans: 0 },
+{ q: "Tokoh Indonesia yang menjabat sebagai Wakil Ketua BPUPK mendampingi perwakilan Jepang adalah...", opt: ["Mr. Mohammad Yamin", "R.P. Soeroso", "K.H. A. Wahid Hasjim", "Achmad Soebardjo"], ans: 1 },
+{ q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], ans: 2 },
+{ q: "Sidang Pertama BPUPK diselenggarakan di gedung Chuo Sangi In, yang saat ini dikenal sebagai...", opt: ["Gedung Merdeka", "Gedung Agung", "Istana Negara", "Gedung Pancasila"], ans: 3 },
+{ q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 },
+{ q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Soepomo", "Mr. Mohammad Yamin", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 1 },
+{ q: "Jumlah seluruh anggota awal BPUPK saat dilantik pada 28 Mei 1945 (termasuk 60 anggota aktif Indonesia dan 7 perwakilan Jepang) adalah...", opt: ["60 Orang", "62 Orang", "67 Orang", "74 Orang"], ans: 2 },
+{ q: "Tokoh yang menyampaikan gagasan dasar negara dengan paham 'negara integralistik' pada tanggal 31 Mei 1945 adalah...", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Mohammad Yamin", "Mr. Soepomo"], ans: 3 },
+{ q: "Pidato Ir. Soekarno pada tanggal 1 Juni 1945 yang mengusulkan lima dasar negara kini diperingati sebagai...", opt: ["Hari Lahir Pancasila", "Hari Kesaktian Pancasila", "Hari Kebangkitan Nasional", "Hari Sumpah Pemuda"], ans: 0 },
+{ q: "Istilah 'Pancasila' yang diusulkan oleh Ir. Soekarno pada 1 Juni 1945 diperoleh atas saran dari seorang ahli...", opt: ["Sejarah", "Bahasa", "Hukum", "Agama"], ans: 1 },
+{ q: "Untuk menindaklanjuti usulan dasar negara dari para anggota BPUPK pada masa reses, dibentuk panitia kecil yang dikenal sebagai...", opt: ["Panitia Lima", "PPKI", "Panitia Sembilan", "Chuo Sangi In"], ans: 2 },
+{ q: "Siapakah tokoh yang menjabat sebagai Ketua Panitia Sembilan?", opt: ["Drs. Mohammad Hatta", "Mr. A.A. Maramis", "K.H. A. Wahid Hasjim", "Ir. Soekarno"], ans: 3 },
+{ q: "Hasil rumusan Panitia Sembilan yang disepakati pada tanggal 22 Juni 1945 dikenal dengan sebutan...", opt: ["Piagam Jakarta (Jakarta Charter)", "Teks Proklamasi", "Trisila", "Dekrit Presiden"], ans: 0 },
+{ q: "Rumusan Sila Pertama Pancasila dalam Piagam Jakarta sebelum disempurnakan pada 18 Agustus 1945 berbunyi...", opt: ["Ketuhanan Yang Maha Esa", "Ketuhanan dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia"], ans: 1 },
+{ q: "Sidang Kedua BPUPK dilaksanakan pada tanggal...", opt: ["29 Mei - 1 Juni 1945", "1 - 7 Agustus 1945", "10 - 17 Juli 1945", "17 - 18 Agustus 1945"], ans: 2 },
+{ q: "Fokus utama pembahasan dalam Sidang Kedua BPUPK adalah...", opt: ["Dasar Negara", "Pemilihan Presiden dan Wakil Presiden", "Pembentukan TNI", "Rancangan Undang-Undang Dasar"], ans: 3 },
+{ q: "Dalam Sidang Kedua, BPUPK membentuk Panitia Perancang UUD yang diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 0 },
+{ q: "Panitia Kecil Perancang Undang-Undang Dasar yang bertugas menyusun isi UUD diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Mr. Mohammad Yamin", "K.H. A. Wahid Hasjim"], ans: 1 },
+{ q: "Selain Panitia Perancang UUD, BPUPK juga membentuk Panitia Keuangan dan Perekonomian yang diketuai oleh...", opt: ["Abikoesno Tjokrosoejoso", "Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 2 },
+{ q: "BPUPK secara resmi dibubarkan oleh pemerintah pendudukan Jepang pada tanggal 7 Agustus 1945 karena...", opt: ["Gagal merumuskan UUD", "Melakukan pemberontakan", "Tidak patuh pada perintah Jepang", "Dianggap telah selesai menjalankan tugasnya"], ans: 3 },
+{ q: "Setelah BPUPK dibubarkan pada 7 Agustus 1945, badan baru yang dibentuk sebagai penggantinya adalah...", opt: ["PPKI (Dokuritsu Junbi Inkai)", "PETA", "Heiho", "KNIP"], ans: 0 }
+],
         2: [
             { q: "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", opt: ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Tugas utama dari Panitia Sembilan adalah...", opt: ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], ans: 0 },

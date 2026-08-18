@@ -24,7 +24,7 @@ st.markdown("""
         max-width: 100% !important;
     }
     .main {
-        background: linear-gradient(135deg, #1f0003 0%, #0d0001 100%);
+        background: #100002;
     }
     iframe {
         border-radius: 16px;
@@ -33,7 +33,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Single Bundle Engine HTML5 + CSS + JavaScript
+# Single Bundle Engine HTML5 + CSS + JavaScript (Optimized for Android)
 game_html = """
 <!DOCTYPE html>
 <html lang="id">
@@ -62,9 +62,7 @@ game_html = """
     }
     body {
         padding: 8px;
-        background: linear-gradient(-45deg, #4a0000, #1a0000, #310015, #0a0002);
-        background-size: 400% 400%;
-        animation: gradientBg 12s ease infinite;
+        background: linear-gradient(135deg, #3a0000 0%, #120002 50%, #20000e 100%);
         color: white;
         display: flex;
         flex-direction: column;
@@ -73,36 +71,25 @@ game_html = """
         min-height: 100vh;
     }
 
-    @keyframes gradientBg {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
     .card {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(26, 8, 12, 0.92);
         border: 2px solid rgba(255, 215, 0, 0.5);
         border-radius: 16px;
         padding: 16px;
         width: 100%;
         max-width: 480px;
         text-align: center;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15), 0 8px 25px rgba(0,0,0,0.8);
-        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+        will-change: transform, opacity;
+        transform: translateZ(0);
+        animation: popIn 0.35s ease-out;
     }
 
     h2 { 
         color: #ffd700;
         margin-top: 0; 
         font-size: clamp(20px, 5vw, 26px);
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 2px 6px rgba(0,0,0,0.8);
-        animation: glowHeader 2.5s ease-in-out infinite alternate;
-    }
-
-    @keyframes glowHeader {
-        0% { text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700; }
-        100% { text-shadow: 0 0 15px #ffd700, 0 0 25px #ff4500, 0 0 35px #ff4500; }
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
     }
     
     .input-field {
@@ -110,17 +97,16 @@ game_html = """
         padding: 10px 14px;
         border-radius: 8px;
         border: 1.5px solid rgba(255, 215, 0, 0.6);
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.7);
         color: #fff;
         font-size: 14px;
         outline: none;
         margin-top: 4px;
         margin-bottom: 12px;
-        transition: all 0.3s ease;
+        transition: border-color 0.2s ease;
     }
     .input-field:focus {
         border-color: #ffd700;
-        box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
     }
 
     .stats-bar {
@@ -129,12 +115,11 @@ game_html = """
         gap: 4px;
         width: 100%;
         max-width: 480px;
-        background: rgba(0,0,0,0.75);
+        background: rgba(10, 2, 4, 0.85);
         padding: 8px 4px;
         border-radius: 12px;
         margin-bottom: 10px;
         border: 1px solid rgba(255, 215, 0, 0.4);
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(255, 215, 0, 0.1);
     }
     .stat-item { text-align: center; }
     .stat-title { font-size: 9px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
@@ -146,12 +131,14 @@ game_html = """
         gap: 6px;
         width: 100%;
         max-width: 480px;
-        background: rgba(15, 5, 5, 0.9);
+        background: rgba(15, 5, 5, 0.95);
         padding: 8px;
         border-radius: 16px;
         border: 2px solid #ffd700;
-        box-shadow: 0 0 30px rgba(255, 215, 0, 0.35), inset 0 0 15px rgba(0,0,0,0.9);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
         position: relative;
+        will-change: transform;
+        transform: translateZ(0);
     }
 
     .tile {
@@ -163,11 +150,13 @@ game_html = """
         justify-content: center;
         font-size: clamp(18px, 5.5vw, 26px);
         cursor: pointer;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease, filter 0.15s;
+        transition: transform 0.15s ease-out, opacity 0.15s ease-out;
         border: 1.5px solid rgba(255, 255, 255, 0.4);
-        box-shadow: inset -2px -3px 5px rgba(0,0,0,0.6), inset 2px 2px 4px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.5);
+        box-shadow: inset 0 -3px 4px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.5);
         position: relative;
         overflow: hidden;
+        will-change: transform, opacity;
+        transform: translateZ(0);
     }
 
     .tile::before {
@@ -177,31 +166,30 @@ game_html = """
         left: 3px;
         right: 3px;
         height: 38%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0.05));
+        background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.02));
         border-radius: 6px 6px 100% 100%;
         pointer-events: none;
     }
 
-    .tile:active { transform: scale(0.9); }
+    .tile:active { transform: scale(0.92); }
 
     .tile.selected {
         border: 2.5px solid #ffffff !important;
-        transform: scale(1.15);
-        box-shadow: 0 0 22px #ffd700, 0 0 10px #ffffff, inset 0 0 10px #ffffff !important;
+        transform: scale(1.12);
+        box-shadow: 0 0 15px #ffd700 !important;
         z-index: 10;
         animation: pulse-gem 0.6s infinite alternate ease-in-out;
     }
 
     .tile.matched-pop {
-        transform: scale(1.4) rotate(180deg) !important;
+        transform: scale(1.3) rotate(90deg) !important;
         opacity: 0 !important;
-        filter: brightness(2.5) drop-shadow(0 0 15px #ffd700) !important;
-        transition: all 0.3s ease-out;
+        transition: transform 0.25s ease-out, opacity 0.25s ease-out;
     }
 
     @keyframes pulse-gem {
-        0% { filter: brightness(1); transform: scale(1.08); }
-        100% { filter: brightness(1.4); transform: scale(1.18); }
+        0% { transform: scale(1.08); }
+        100% { transform: scale(1.16); }
     }
 
     .gem-topaz { background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); }
@@ -215,17 +203,13 @@ game_html = """
         position: fixed;
         top: 0; left: 0;
         right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.92);
+        background: rgba(0, 0, 0, 0.9);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding: 16px;
         z-index: 100;
-        backdrop-filter: blur(8px);
-    }
-    .modal-overlay > div {
-        animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .timer-bar-container {
@@ -235,13 +219,11 @@ game_html = """
         border-radius: 4px;
         overflow: hidden;
         margin-bottom: 12px;
-        box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
     }
     .timer-bar { 
         height: 100%; 
-        background: linear-gradient(90deg, #ff4500, #ffd700); 
+        background: #ffd700; 
         width: 100%; 
-        box-shadow: 0 0 10px #ffd700;
     }
     
     .btn {
@@ -249,17 +231,13 @@ game_html = """
         color: white; border: 1.5px solid #ffd700;
         padding: 12px 20px; font-size: 15px; font-weight: bold;
         border-radius: 25px; cursor: pointer; 
-        transition: all 0.25s ease;
+        transition: transform 0.15s ease;
         margin: 6px;
         width: 100%;
         max-width: 300px;
-        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4), 0 0 10px rgba(255, 215, 0, 0.2);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(211, 47, 47, 0.6), 0 0 15px rgba(255, 215, 0, 0.5);
-    }
-    .btn:active { transform: scale(0.96); }
+    .btn:active { transform: scale(0.95); }
 
     .opt-btn {
         background: rgba(255, 255, 255, 0.12);
@@ -267,19 +245,14 @@ game_html = """
         color: white; padding: 12px; border-radius: 10px;
         text-align: left; font-size: 13px; cursor: pointer;
         margin-bottom: 8px;
-        width: 100%; transition: all 0.2s;
+        width: 100%; transition: background-color 0.15s ease;
     }
-    .opt-btn:hover {
-        background: rgba(255, 215, 0, 0.25);
-        border-color: #ffd700;
-    }
-    .opt-btn:active { background: rgba(255, 215, 0, 0.4); border-color: #ffd700; }
-    .opt-btn.correct { background: #2e7d32 !important; box-shadow: 0 0 15px #4caf50; }
-    .opt-btn.wrong { background: #c62828 !important; box-shadow: 0 0 15px #f44336; }
+    .opt-btn:active { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
+    .opt-btn.correct { background: #2e7d32 !important; }
+    .opt-btn.wrong { background: #c62828 !important; }
 
     .hidden { display: none !important; }
 
-    /* TABEL LEADERBOARD GLOBAL */
     .leaderboard-box {
         margin-top: 14px;
         background: rgba(0, 0, 0, 0.55);
@@ -313,37 +286,35 @@ game_html = """
     .leaderboard-table tr:nth-child(2) td { color: #e0e0e0; font-weight: bold; }
     .leaderboard-table tr:nth-child(3) td { color: #cd7f32; font-weight: bold; }
 
-    /* ANIMASI DYNAMIC LENGKAP */
     @keyframes popIn {
-        from { opacity: 0; transform: scale(0.85); }
+        from { opacity: 0; transform: scale(0.92); }
         to { opacity: 1; transform: scale(1); }
     }
 
     .shake {
-        animation: shakeAnim 0.35s ease-in-out;
+        animation: shakeAnim 0.3s ease-in-out;
     }
     @keyframes shakeAnim {
         0%, 100% { transform: translate(0, 0); }
-        20% { transform: translate(-8px, 4px); }
-        40% { transform: translate(8px, -4px); }
-        60% { transform: translate(-5px, 2px); }
-        80% { transform: translate(5px, -2px); }
+        25% { transform: translate(-6px, 0); }
+        75% { transform: translate(6px, 0); }
     }
 
     .floating-text {
         position: absolute;
         font-weight: 900;
-        font-size: 22px;
+        font-size: 20px;
         color: #ffd700;
-        text-shadow: 0 0 10px #ff9f43, 0 0 20px #ff4500, 0 2px 4px #000;
+        text-shadow: 0 2px 4px #000;
         pointer-events: none;
-        animation: floatUp 0.85s ease-out forwards;
+        animation: floatUp 0.75s ease-out forwards;
         z-index: 999;
+        will-change: transform, opacity;
     }
     @keyframes floatUp {
-        0% { opacity: 1; transform: translateY(0) scale(0.8); }
-        50% { opacity: 1; transform: translateY(-25px) scale(1.3); }
-        100% { opacity: 0; transform: translateY(-50px) scale(1); }
+        0% { opacity: 1; transform: translateY(0) scale(0.9); }
+        50% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+        100% { opacity: 0; transform: translateY(-40px) scale(1); }
     }
 </style>
 </head>
@@ -494,7 +465,7 @@ game_html = """
         }
 
         try {
-            db.ref('leaderboard').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
+            db.ref('leaderboard').orderByChild('score').limitToLast(10).once('value', (snapshot) => {
                 let data = [];
                 snapshot.forEach((child) => {
                     data.push(child.val());
@@ -546,7 +517,6 @@ game_html = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
-    // BANK SOAL DENGAN Rincian KEDALAMAN HISTORIS TINGGI
     const questionsDB = {
         1: [
 { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
@@ -559,39 +529,39 @@ game_html = """
 { q: "Sidang Pertama BPUPK diselenggarakan di gedung Chuo Sangi In, yang saat ini dikenal sebagai...", opt: ["Gedung Merdeka", "Gedung Agung", "Istana Negara", "Gedung Pancasila"], ans: 3 },
 { q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 },
 { q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Soepomo", "Mr. Mohammad Yamin", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 1 },
-{ q: "Jumlah seluruh anggota awal BPUPK saat dilantik pada 28 Mei 1945 (termasuk 60 anggota aktif Indonesia dan 7 perwakilan Jepang) adalah...", opt: ["60 Orang", "62 Orang", "67 Orang", "74 Orang"], ans: 2 },
+{ q: "Jumlah seluruh anggota awal BPUPK saat dilantik pada 28 Mei 1945 adalah...", opt: ["60 Orang", "62 Orang", "67 Orang", "74 Orang"], ans: 2 },
 { q: "Tokoh yang menyampaikan gagasan dasar negara dengan paham 'negara integralistik' pada tanggal 31 Mei 1945 adalah...", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Mohammad Yamin", "Mr. Soepomo"], ans: 3 },
 { q: "Pidato Ir. Soekarno pada tanggal 1 Juni 1945 yang mengusulkan lima dasar negara kini diperingati sebagai...", opt: ["Hari Lahir Pancasila", "Hari Kesaktian Pancasila", "Hari Kebangkitan Nasional", "Hari Sumpah Pemuda"], ans: 0 },
 { q: "Istilah 'Pancasila' yang diusulkan oleh Ir. Soekarno pada 1 Juni 1945 diperoleh atas saran dari seorang ahli...", opt: ["Sejarah", "Bahasa", "Hukum", "Agama"], ans: 1 },
 { q: "Untuk menindaklanjuti usulan dasar negara dari para anggota BPUPK pada masa reses, dibentuk panitia kecil yang dikenal sebagai...", opt: ["Panitia Lima", "PPKI", "Panitia Sembilan", "Chuo Sangi In"], ans: 2 },
 { q: "Siapakah tokoh yang menjabat sebagai Ketua Panitia Sembilan?", opt: ["Drs. Mohammad Hatta", "Mr. A.A. Maramis", "K.H. A. Wahid Hasjim", "Ir. Soekarno"], ans: 3 },
 { q: "Hasil rumusan Panitia Sembilan yang disepakati pada tanggal 22 Juni 1945 dikenal dengan sebutan...", opt: ["Piagam Jakarta (Jakarta Charter)", "Teks Proklamasi", "Trisila", "Dekrit Presiden"], ans: 0 },
-{ q: "Rumusan Sila Pertama Pancasila dalam Piagam Jakarta sebelum disempurnakan pada 18 Agustus 1945 berbunyi...", opt: ["Ketuhanan Yang Maha Esa", "Ketuhanan dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia"], ans: 1 },
+{ q: "Rumusan Sila Pertama Pancasila dalam Piagam Jakarta sebelum disempurnakan berbunyi...", opt: ["Ketuhanan Yang Maha Esa", "Ketuhanan dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia"], ans: 1 },
 { q: "Sidang Kedua BPUPK dilaksanakan pada tanggal...", opt: ["29 Mei - 1 Juni 1945", "1 - 7 Agustus 1945", "10 - 17 Juli 1945", "17 - 18 Agustus 1945"], ans: 2 },
 { q: "Fokus utama pembahasan dalam Sidang Kedua BPUPK adalah...", opt: ["Dasar Negara", "Pemilihan Presiden dan Wakil Presiden", "Pembentukan TNI", "Rancangan Undang-Undang Dasar"], ans: 3 },
 { q: "Dalam Sidang Kedua, BPUPK membentuk Panitia Perancang UUD yang diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 0 },
-{ q: "Panitia Kecil Perancang Undang-Undang Dasar yang bertugas menyusun isi UUD diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Mr. Mohammad Yamin", "K.H. A. Wahid Hasjim"], ans: 1 },
-{ q: "Selain Panitia Perancang UUD, BPUPK juga membentuk Panitia Keuangan dan Perekonomian yang diketuai oleh...", opt: ["Abikoesno Tjokrosoejoso", "Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 2 },
-{ q: "BPUPK secara resmi dibubarkan oleh pemerintah pendudukan Jepang pada tanggal 7 Agustus 1945 karena...", opt: ["Gagal merumuskan UUD", "Melakukan pemberontakan", "Tidak patuh pada perintah Jepang", "Dianggap telah selesai menjalankan tugasnya"], ans: 3 },
-{ q: "Setelah BPUPK dibubarkan pada 7 Agustus 1945, badan baru yang dibentuk sebagai penggantinya adalah...", opt: ["PPKI (Dokuritsu Junbi Inkai)", "PETA", "Heiho", "KNIP"], ans: 0 }
+{ q: "Panitia Kecil Perancang Undang-Undang Dasar diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Mr. Mohammad Yamin", "K.H. A. Wahid Hasjim"], ans: 1 },
+{ q: "Panitia Keuangan dan Perekonomian dalam BPUPK diketuai oleh...", opt: ["Abikoesno Tjokrosoejoso", "Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 2 },
+{ q: "BPUPK dibubarkan oleh pihak Jepang pada tanggal 7 Agustus 1945 karena...", opt: ["Gagal merumuskan UUD", "Melakukan pemberontakan", "Tidak patuh pada perintah Jepang", "Dianggap telah selesai menjalankan tugasnya"], ans: 3 },
+{ q: "Setelah BPUPK dibubarkan pada 7 Agustus 1945, badan baru yang dibentuk adalah...", opt: ["PPKI (Dokuritsu Junbi Inkai)", "PETA", "Heiho", "KNIP"], ans: 0 }
 ],
         2: [
             { q: "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", opt: ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Tugas utama dari Panitia Sembilan adalah...", opt: ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], ans: 0 },
             { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 },
-            { q: "Tokoh yang mewakili unsur Islam dari organisasi Nahdlatul Ulama (NU) dalam Panitia Sembilan adalah...", opt: ["K.H. Abdul Wahid Hasjim", "K.H. Kahar Moezakir", "H. Agus Salim", "Abikoesno Tjokrosoejoso"], ans: 0 },
-            { q: "Penamaan 'Jakarta Charter' untuk hasil rumusan Panitia Sembilan 22 Juni 1945 pertama kali diusulkan oleh...", opt: ["Mr. Muhammad Yamin", "Ir. Soekarno", "H. Agus Salim", "Mr. Kasman Singodimedjo"], ans: 0 },
-            { q: "Tokoh golongan kebangsaan di Panitia Sembilan yang berasal dari wilayah Indonesia Timur (Minahasa) adalah...", opt: ["Mr. Alexander Andries Maramis", "Mr. Johannes Latuharhary", "Sam Ratulangi", "I Gusti Ketut Pudja"], ans: 0 },
-            { q: "Lokasi penandatanganan naskah Piagam Jakarta oleh Panitia Sembilan pada 22 Juni 1945 berlangsung di...", opt: ["Kediaman Ir. Soekarno (Jl. Pegangsaan Timur No. 56)", "Gedung Chuo Sangi In", "Rumah Laksamana Maeda", "Gedung Pejambon 2"], ans: 0 }
+            { q: "Tokoh yang mewakili unsur Islam dari NU dalam Panitia Sembilan adalah...", opt: ["K.H. Abdul Wahid Hasjim", "K.H. Kahar Moezakir", "H. Agus Salim", "Abikoesno Tjokrosoejoso"], ans: 0 },
+            { q: "Penamaan 'Jakarta Charter' diusulkan pertama kali oleh...", opt: ["Mr. Muhammad Yamin", "Ir. Soekarno", "H. Agus Salim", "Mr. Kasman Singodimedjo"], ans: 0 },
+            { q: "Tokoh golongan kebangsaan asal Minahasa di Panitia Sembilan adalah...", opt: ["Mr. Alexander Andries Maramis", "Mr. Johannes Latuharhary", "Sam Ratulangi", "I Gusti Ketut Pudja"], ans: 0 },
+            { q: "Lokasi penandatanganan naskah Piagam Jakarta berlangsung di...", opt: ["Kediaman Ir. Soekarno (Jl. Pegangsaan Timur No. 56)", "Gedung Chuo Sangi In", "Rumah Laksamana Maeda", "Gedung Pejambon 2"], ans: 0 }
         ],
         3: [
             { q: "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", opt: ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], ans: 0 },
-            { q: "Sidang pertama PPKI pasca proklamasi kemerdekaan dilaksanakan pada tanggal...", opt: ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], ans: 0 },
-            { q: "Salah satu keputusan paling krusial dalam Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 },
-            { q: "Jumlah awal anggota PPKI adalah 21 orang. Ir. Soekarno kemudian menambah anggota baru tanpa sepengetahuan Jepang sebanyak...", opt: ["6 Orang", "5 Orang", "7 Orang", "9 Orang"], ans: 0 },
-            { q: "Perubahan 7 kata pada Sila Pertama Piagam Jakarta diputuskan sebelum sidang PPKI 18 Agustus 1945. Tokoh yang TIDAK ikut dalam diskusi cepat tersebut adalah...", opt: ["H. Agus Salim", "Ki Bagoes Hadikoesoemo", "Mr. Kasman Singodimedjo", "Teuku Mohammad Hasan"], ans: 0 },
-            { q: "Hasil sidang PPKI kedua pada tanggal 19 Agustus 1945 menyepakati pembagian wilayah Indonesia menjadi...", opt: ["8 Provinsi", "12 Provinsi", "10 Provinsi", "5 Provinsi"], ans: 0 },
-            { q: "Badan yang dibentuk pada sidang PPKI tanggal 22 Agustus 1945 untuk berfungsi sebagai partai tunggal sebelum akhirnya dibatalkan adalah...", opt: ["PNI (Partai Nasional Indonesia)", "BKR (Badan Keamanan Rakyat)", "KNIP (Komite Nasional Indonesia Pusat)", "Masyumi"], ans: 0 }
+            { q: "Sidang pertama PPKI dilaksanakan pada tanggal...", opt: ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], ans: 0 },
+            { q: "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 },
+            { q: "Jumlah anggota PPKI ditambah oleh Ir. Soekarno tanpa sepengetahuan Jepang sebanyak...", opt: ["6 Orang", "5 Orang", "7 Orang", "9 Orang"], ans: 0 },
+            { q: "Perubahan 7 kata pada Sila Pertama diputuskan sebelum sidang PPKI 18 Agustus 1945. Tokoh yang TIDAK ikut dalam diskusi cepat tersebut adalah...", opt: ["H. Agus Salim", "Ki Bagoes Hadikoesoemo", "Mr. Kasman Singodimedjo", "Teuku Mohammad Hasan"], ans: 0 },
+            { q: "Sidang PPKI kedua pada 19 Agustus 1945 membagi wilayah Indonesia menjadi...", opt: ["8 Provinsi", "12 Provinsi", "10 Provinsi", "5 Provinsi"], ans: 0 },
+            { q: "Badan yang dibentuk pada sidang PPKI 22 Agustus 1945 sebagai partai tunggal adalah...", opt: ["PNI (Partai Nasional Indonesia)", "BKR (Badan Keamanan Rakyat)", "KNIP (Komite Nasional Indonesia Pusat)", "Masyumi"], ans: 0 }
         ]
     };
 
@@ -610,8 +580,6 @@ game_html = """
     let board = document.getElementById('grid');
     let selectedTile = null;
     let isProcessing = false;
-
-    // POOL SOAL ANTI-DUPLIKASI SESSION
     let currentQuestionPool = [];
 
     function shuffleArray(array) {
@@ -627,7 +595,7 @@ game_html = """
 
     function triggerShake(element = board) {
         element.classList.remove('shake');
-        void element.offsetWidth; // Force reflow
+        void element.offsetWidth;
         element.classList.add('shake');
     }
 
@@ -641,7 +609,7 @@ game_html = """
         floatEl.style.top = `${rect.top + rect.height / 2 - 10}px`;
         document.body.appendChild(floatEl);
 
-        setTimeout(() => floatEl.remove(), 850);
+        setTimeout(() => floatEl.remove(), 750);
     }
 
     function formatTime(seconds) {
@@ -653,7 +621,7 @@ game_html = """
     function applyGemStyle(tile) {
         const symbol = tile.innerText;
         const index = gems.indexOf(symbol);
-        gemClasses.forEach(cls => tile.classList.remove(cls));
+        tile.className = 'tile';
         if (index !== -1) {
             tile.classList.add(gemClasses[index]);
         }
@@ -684,7 +652,6 @@ game_html = """
         questionsAnswered = 0;
         levelTimeLeft = levelTimeLimits[currentLevel] || 300;
         
-        // Inisialisasi pool soal acak anti-duplikasi
         let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
         currentQuestionPool = shuffleArray(rawQuestions);
 
@@ -717,16 +684,18 @@ game_html = """
     function createBoard() {
         board.innerHTML = '';
         grid = [];
+        let fragment = document.createDocumentFragment();
+        
         for (let i = 0; i < width * width; i++) {
             let tile = document.createElement('div');
-            tile.classList.add('tile');
             tile.id = i;
             tile.innerText = gems[Math.floor(Math.random() * gems.length)];
             applyGemStyle(tile);
             tile.addEventListener('click', selectTile);
-            board.appendChild(tile);
+            fragment.appendChild(tile);
             grid.push(tile);
         }
+        board.appendChild(fragment);
         checkMatchesSilently();
     }
 
@@ -769,7 +738,7 @@ game_html = """
 
                 let matchInfo = findAndMarkMatches();
                 if (matchInfo.matchedIndices.length === 0) {
-                    await sleep(200);
+                    await sleep(180);
                     swapGems(firstTile, secondTile);
                     if (moves <= 0) {
                         gameOver("💥 Langkah (Moves) Kamu Habis!");
@@ -859,7 +828,7 @@ game_html = """
             score += points;
             updateUI();
 
-            await sleep(300);
+            await sleep(250);
 
             currentMatch.matchedIndices.forEach(idx => {
                 grid[idx].innerText = '';
@@ -867,9 +836,9 @@ game_html = """
                 applyGemStyle(grid[idx]);
             });
 
-            await sleep(150);
+            await sleep(100);
             dropGems();
-            await sleep(250);
+            await sleep(200);
 
             currentMatch = findAndMarkMatches();
             combo++;
@@ -879,13 +848,11 @@ game_html = """
     }
 
     function triggerQuiz() {
-        // Isi ulang jika bank soal dalam pool habis
         if (currentQuestionPool.length === 0) {
             let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
             currentQuestionPool = shuffleArray(rawQuestions);
         }
 
-        // Ambil soal paling atas tanpa duplikasi
         let qObj = currentQuestionPool.pop();
 
         document.getElementById('modal-tag').innerText = `KUIS LEVEL ${currentLevel} - SEJARAH PANCASILA`;
@@ -894,7 +861,6 @@ game_html = """
         let optionsContainer = document.getElementById('quiz-options');
         optionsContainer.innerHTML = '';
 
-        // Mengacak posisi jawaban pilihan ganda
         let optionsList = qObj.opt.map((optText, index) => ({
             text: optText,
             isCorrect: index === qObj.ans
@@ -960,7 +926,7 @@ game_html = """
             } else if (moves <= 0) {
                 gameOver("💥 Langkah (Moves) Kamu Habis!");
             }
-        }, 1000);
+        }, 800);
     }
 
     function levelWin() {

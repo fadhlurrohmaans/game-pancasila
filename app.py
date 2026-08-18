@@ -364,7 +364,7 @@ game_html = """
     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
         📜 <b>Materi & Aturan Main:</b><br>
         • Materi: <b>BPUPK (Lvl 1), Panitia 9 (Lvl 2), PPKI (Lvl 3)</b>.<br>
-        • Tersedia <b>50 varian soal</b> pada tiap level.<br>
+        • Sistem <b>Anti-Duplikasi Soal</b> aktif (soal acak tanpa pengulangan).<br>
         • Modal: <b>25 Moves</b> & <b>3 Nyawa (❤️)</b> per Level.<br>
         • Jawaban Salah / Waktu Habis = <b>Nyawa (❤️) Berkurang 1</b>.
     </div>
@@ -547,6 +547,7 @@ game_html = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
+    // BANK SOAL DENGAN Rincian KEDALAMAN HISTORIS TINGGI
     const questionsDB = {
         1: [
             { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
@@ -558,17 +559,28 @@ game_html = """
             { q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["29 Mei - 1 Juni 1945", "10 - 17 Juli 1945", "22 - 25 Juni 1945", "17 - 18 Agustus 1945"], ans: 0 },
             { q: "Sidang Pertama BPUPK diselenggarakan di gedung Chuo Sangi In, yang saat ini dikenal sebagai...", opt: ["Gedung Pancasila", "Gedung Merdeka", "Gedung Agung", "Istana Negara"], ans: 0 },
             { q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 },
-            { q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Mohammad Yamin", "Mr. Soepomo", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 0 }
+            { q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Mohammad Yamin", "Mr. Soepomo", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 0 },
+            { q: "Berapa total seluruh anggota BPUPK saat dilantik pada 28 Mei 1945 (termasuk anggota aktif dan pasif perwakilan Jepang)?", opt: ["67 Orang", "60 Orang", "62 Orang", "74 Orang"], ans: 0 },
+            { q: "Dalam pidato tanggal 31 Mei 1945, Prof. Dr. Mr. Soepomo menyampaikan 5 asas dasar negara. Asas ke-3 yang beliau sebutkan adalah...", opt: ["Keseimbangan Lahir dan Batin", "Musyawarah", "Persatuan", "Keadilan Rakyat"], ans: 0 },
+            { q: "Anggota BPUPK yang menyampaikan konsep dasar negara pada tanggal 30 Mei 1945 dalam pemikiran tertulis/lisan mengenai paham kebangsaan adalah...", opt: ["Drs. Mohammad Hatta", "Mr. A.A. Maramis", "Ki Bagoes Hadikoesoemo", "Sukarni"], ans: 0 }
         ],
         2: [
             { q: "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", opt: ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Tugas utama dari Panitia Sembilan adalah...", opt: ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], ans: 0 },
-            { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 }
+            { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 },
+            { q: "Tokoh yang mewakili unsur Islam dari organisasi Nahdlatul Ulama (NU) dalam Panitia Sembilan adalah...", opt: ["K.H. Abdul Wahid Hasjim", "K.H. Kahar Moezakir", "H. Agus Salim", "Abikoesno Tjokrosoejoso"], ans: 0 },
+            { q: "Penamaan 'Jakarta Charter' untuk hasil rumusan Panitia Sembilan 22 Juni 1945 pertama kali diusulkan oleh...", opt: ["Mr. Muhammad Yamin", "Ir. Soekarno", "H. Agus Salim", "Mr. Kasman Singodimedjo"], ans: 0 },
+            { q: "Tokoh golongan kebangsaan di Panitia Sembilan yang berasal dari wilayah Indonesia Timur (Minahasa) adalah...", opt: ["Mr. Alexander Andries Maramis", "Mr. Johannes Latuharhary", "Sam Ratulangi", "I Gusti Ketut Pudja"], ans: 0 },
+            { q: "Lokasi penandatanganan naskah Piagam Jakarta oleh Panitia Sembilan pada 22 Juni 1945 berlangsung di...", opt: ["Kediaman Ir. Soekarno (Jl. Pegangsaan Timur No. 56)", "Gedung Chuo Sangi In", "Rumah Laksamana Maeda", "Gedung Pejambon 2"], ans: 0 }
         ],
         3: [
             { q: "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", opt: ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Sidang pertama PPKI pasca proklamasi kemerdekaan dilaksanakan pada tanggal...", opt: ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], ans: 0 },
-            { q: "Salah satu keputusan paling krusial dalam Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 }
+            { q: "Salah satu keputusan paling krusial dalam Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 },
+            { q: "Jumlah awal anggota PPKI adalah 21 orang. Ir. Soekarno kemudian menambah anggota baru tanpa sepengetahuan Jepang sebanyak...", opt: ["6 Orang", "5 Orang", "7 Orang", "9 Orang"], ans: 0 },
+            { q: "Perubahan 7 kata pada Sila Pertama Piagam Jakarta diputuskan sebelum sidang PPKI 18 Agustus 1945. Tokoh yang TIDAK ikut dalam diskusi cepat tersebut adalah...", opt: ["H. Agus Salim", "Ki Bagoes Hadikoesoemo", "Mr. Kasman Singodimedjo", "Teuku Mohammad Hasan"], ans: 0 },
+            { q: "Hasil sidang PPKI kedua pada tanggal 19 Agustus 1945 menyepakati pembagian wilayah Indonesia menjadi...", opt: ["8 Provinsi", "12 Provinsi", "10 Provinsi", "5 Provinsi"], ans: 0 },
+            { q: "Badan yang dibentuk pada sidang PPKI tanggal 22 Agustus 1945 untuk berfungsi sebagai partai tunggal sebelum akhirnya dibatalkan adalah...", opt: ["PNI (Partai Nasional Indonesia)", "BKR (Badan Keamanan Rakyat)", "KNIP (Komite Nasional Indonesia Pusat)", "Masyumi"], ans: 0 }
         ]
     };
 
@@ -587,6 +599,18 @@ game_html = """
     let board = document.getElementById('grid');
     let selectedTile = null;
     let isProcessing = false;
+
+    // POOL SOAL ANTI-DUPLIKASI SESSION
+    let currentQuestionPool = [];
+
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
 
     function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
@@ -649,6 +673,10 @@ game_html = """
         questionsAnswered = 0;
         levelTimeLeft = levelTimeLimits[currentLevel] || 300;
         
+        // Inisialisasi pool soal acak anti-duplikasi
+        let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
+        currentQuestionPool = shuffleArray(rawQuestions);
+
         updateUI();
         createBoard();
         startLevelTimer();
@@ -809,7 +837,6 @@ game_html = """
         while (currentMatch.matchedIndices.length > 0) {
             triggerShake();
             
-            // Spawn floating score text at center tile of match
             const firstIdx = currentMatch.matchedIndices[0];
             const points = currentMatch.matchedIndices.length * 30 * combo;
             spawnFloatingText(grid[firstIdx], combo > 1 ? `COMBO x${combo}! +${points}` : `+${points}`);
@@ -841,8 +868,14 @@ game_html = """
     }
 
     function triggerQuiz() {
-        let questions = questionsDB[currentLevel] || questionsDB[1];
-        let qObj = questions[Math.floor(Math.random() * questions.length)];
+        // Isi ulang jika bank soal dalam pool habis
+        if (currentQuestionPool.length === 0) {
+            let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
+            currentQuestionPool = shuffleArray(rawQuestions);
+        }
+
+        // Ambil soal paling atas tanpa duplikasi
+        let qObj = currentQuestionPool.pop();
 
         document.getElementById('modal-tag').innerText = `KUIS LEVEL ${currentLevel} - SEJARAH PANCASILA`;
         document.getElementById('quiz-question').innerText = qObj.q;
@@ -850,14 +883,18 @@ game_html = """
         let optionsContainer = document.getElementById('quiz-options');
         optionsContainer.innerHTML = '';
 
-        let indices = [0, 1, 2, 3];
-        indices.sort(() => Math.random() - 0.5);
+        // Mengacak posisi jawaban pilihan ganda
+        let optionsList = qObj.opt.map((optText, index) => ({
+            text: optText,
+            isCorrect: index === qObj.ans
+        }));
+        optionsList = shuffleArray(optionsList);
 
-        indices.forEach(idx => {
+        optionsList.forEach(optItem => {
             let btn = document.createElement('button');
             btn.classList.add('opt-btn');
-            btn.innerText = qObj.opt[idx];
-            btn.onclick = () => handleAnswer(idx === qObj.ans, btn);
+            btn.innerText = optItem.text;
+            btn.onclick = () => handleAnswer(optItem.isCorrect, btn);
             optionsContainer.appendChild(btn);
         });
 

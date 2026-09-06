@@ -1,5 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import urllib.request
+import json
+import pandas as pd
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
@@ -9,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom Styling CSS Streamlit untuk Tampilan Layar Penuh
+# Custom Styling CSS Streamlit
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -17,10 +20,10 @@ st.markdown("""
     header {visibility: hidden;}
     
     .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 0.5rem !important;
-        padding-left: 0.2rem !important;
-        padding-right: 0.2rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
         max-width: 100% !important;
     }
     .main {
@@ -30,10 +33,41 @@ st.markdown("""
         border-radius: 16px;
         width: 100% !important;
     }
+    /* Style Tab Streamlit */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 45px;
+        white-space: pre-wrap;
+        background-color: #1a080c;
+        border-radius: 8px 8px 0px 0px;
+        color: #ffd700;
+        font-weight: bold;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #d32f2f !important;
+        color: #ffffff !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Single Bundle Engine HTML5 + CSS + JavaScript (Optimized for Android)
+# Function Fetch Data Firebase untuk Dashboard Guru
+def fetch_firebase_data():
+    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/leaderboard.json"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data:
+                records = list(data.values())
+                df = pd.DataFrame(records)
+                return df
+    except Exception as e:
+        st.error(f"Gagal terhubung ke database: {e}")
+    return pd.DataFrame()
+
+# Single Bundle Engine HTML5 + CSS + JavaScript (Siswa)
 game_html = """
 <!DOCTYPE html>
 <html lang="id">
@@ -102,7 +136,7 @@ game_html = """
         font-size: 14px;
         outline: none;
         margin-top: 4px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         transition: border-color 0.2s ease;
     }
     .input-field:focus {
@@ -282,9 +316,6 @@ game_html = """
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         text-align: left;
     }
-    .leaderboard-table tr:nth-child(1) td { color: #ffd700; font-weight: bold; }
-    .leaderboard-table tr:nth-child(2) td { color: #e0e0e0; font-weight: bold; }
-    .leaderboard-table tr:nth-child(3) td { color: #cd7f32; font-weight: bold; }
 
     @keyframes popIn {
         from { opacity: 0; transform: scale(0.92); }
@@ -328,8 +359,16 @@ game_html = """
         <label style="font-size: 12px; color: #ffd700; font-weight: bold;">Nama Lengkap Siswa:</label>
         <input type="text" id="input-nama" class="input-field" placeholder="Ketik nama kamu di sini...">
 
-        <label style="font-size: 12px; color: #ffd700; font-weight: bold;">Kelas:</label>
-        <input type="text" id="input-kelas" class="input-field" placeholder="Contoh: VII A / VIII B...">
+        <div style="display: flex; gap: 8px;">
+            <div style="flex: 2;">
+                <label style="font-size: 12px; color: #ffd700; font-weight: bold;">Kelas:</label>
+                <input type="text" id="input-kelas" class="input-field" placeholder="Contoh: VII A / VIII B">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 12px; color: #ffd700; font-weight: bold;">No. Absen:</label>
+                <input type="number" id="input-absen" class="input-field" placeholder="No. Absen">
+            </div>
+        </div>
     </div>
 
     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
@@ -351,7 +390,7 @@ game_html = """
 
 <div id="screen-game" class="hidden" style="display:flex; flex-direction:column; align-items:center; width: 100%;">
     <div style="font-size: 11px; color: #ffe066; margin-bottom: 6px; font-weight: bold;" id="player-banner">
-        Siswa: - | Kelas: -
+        Siswa: - | Kelas: - | Absen: -
     </div>
 
     <div class="stats-bar">
@@ -436,20 +475,26 @@ game_html = """
         }
         db = firebase.database();
     } catch(e) {
-        console.warn("Firebase belum diatur / bermasalah:", e);
+        console.warn("Firebase bermasalah:", e);
     }
 
-    function submitGlobalScore(nama, kelas, totalSkor) {
+    function submitGlobalScore(nama, kelas, absen, totalSkor, isVictory) {
         if (!db || totalSkor <= 0) return;
         try {
+            const now = new Date();
+            const timeStr = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
             db.ref('leaderboard').push({
                 nama: nama,
                 kelas: kelas,
+                absen: absen,
                 score: totalSkor,
+                status: isVictory ? "BERHASIL TAMAT 🎉" : "Gagal / Terhenti ❌",
+                isVictory: isVictory,
+                waktu: timeStr,
                 timestamp: Date.now()
             });
         } catch(e) {
-            console.error("Gagal menyimpan skor global:", e);
+            console.error("Gagal menyimpan data:", e);
         }
     }
 
@@ -457,12 +502,7 @@ game_html = """
         const startList = document.getElementById('leaderboard-start-list');
         const endList = document.getElementById('leaderboard-end-list');
 
-        if (!db) {
-            const warningMsg = "<p style='font-size:11px; color:#ffe066;'>Isi firebaseConfig untuk mengaktifkan leaderboard global online.</p>";
-            if(startList) startList.innerHTML = warningMsg;
-            if(endList) endList.innerHTML = warningMsg;
-            return;
-        }
+        if (!db) return;
 
         try {
             db.ref('leaderboard').orderByChild('score').limitToLast(10).once('value', (snapshot) => {
@@ -473,7 +513,7 @@ game_html = """
                 data.reverse();
 
                 if (data.length === 0) {
-                    const emptyMsg = "<p style='font-size:11px; color:#aaa;'>Belum ada skor tercatat. Jadilah yang pertama!</p>";
+                    const emptyMsg = "<p style='font-size:11px; color:#aaa;'>Belum ada skor tercatat.</p>";
                     if(startList) startList.innerHTML = emptyMsg;
                     if(endList) endList.innerHTML = emptyMsg;
                     return;
@@ -482,9 +522,10 @@ game_html = """
                 let html = `<table class="leaderboard-table">
                     <thead>
                         <tr>
-                            <th style="width:12%;">#</th>
-                            <th style="width:48%;">Nama</th>
-                            <th style="width:20%;">Kelas</th>
+                            <th style="width:10%;">#</th>
+                            <th style="width:40%;">Nama</th>
+                            <th style="width:15%;">Absen</th>
+                            <th style="width:15%;">Kelas</th>
                             <th style="width:20%; text-align:right;">Skor</th>
                         </tr>
                     </thead>
@@ -495,6 +536,7 @@ game_html = """
                     html += `<tr>
                         <td>${medal}</td>
                         <td>${item.nama || 'Anonim'}</td>
+                        <td>${item.absen || '-'}</td>
                         <td>${item.kelas || '-'}</td>
                         <td style="text-align:right; font-weight:bold; color:#ffd700;">${item.score}</td>
                     </tr>`;
@@ -519,54 +561,29 @@ game_html = """
 
     const questionsDB = {
         1: [
-{ q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
-{ q: "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", opt: ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 1 },
-{ q: "Siapakah Ketua (Kaichou) utama dari BPUPK?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], ans: 2 },
-{ q: "Nama BPUPK dalam bahasa Jepang dinamakan...", opt: ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], ans: 3 },
-{ q: "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", opt: ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], ans: 0 },
-{ q: "Tokoh Indonesia yang menjabat sebagai Wakil Ketua BPUPK mendampingi perwakilan Jepang adalah...", opt: ["Mr. Mohammad Yamin", "R.P. Soeroso", "K.H. A. Wahid Hasjim", "Achmad Soebardjo"], ans: 1 },
-{ q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], ans: 2 },
-{ q: "Sidang Pertama BPUPK diselenggarakan di gedung Chuo Sangi In, yang saat ini dikenal sebagai...", opt: ["Gedung Merdeka", "Gedung Agung", "Istana Negara", "Gedung Pancasila"], ans: 3 },
-{ q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 },
-{ q: "Tokoh pertama yang menyampaikan usulan dasar negara secara lisan pada tanggal 29 Mei 1945 adalah...", opt: ["Mr. Soepomo", "Mr. Mohammad Yamin", "Ir. Soekarno", "Drs. Mohammad Hatta"], ans: 1 },
-{ q: "Jumlah seluruh anggota awal BPUPK saat dilantik pada 28 Mei 1945 adalah...", opt: ["60 Orang", "62 Orang", "67 Orang", "74 Orang"], ans: 2 },
-{ q: "Tokoh yang menyampaikan gagasan dasar negara dengan paham 'negara integralistik' pada tanggal 31 Mei 1945 adalah...", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Mohammad Yamin", "Mr. Soepomo"], ans: 3 },
-{ q: "Pidato Ir. Soekarno pada tanggal 1 Juni 1945 yang mengusulkan lima dasar negara kini diperingati sebagai...", opt: ["Hari Lahir Pancasila", "Hari Kesaktian Pancasila", "Hari Kebangkitan Nasional", "Hari Sumpah Pemuda"], ans: 0 },
-{ q: "Istilah 'Pancasila' yang diusulkan oleh Ir. Soekarno pada 1 Juni 1945 diperoleh atas saran dari seorang ahli...", opt: ["Sejarah", "Bahasa", "Hukum", "Agama"], ans: 1 },
-{ q: "Untuk menindaklanjuti usulan dasar negara dari para anggota BPUPK pada masa reses, dibentuk panitia kecil yang dikenal sebagai...", opt: ["Panitia Lima", "PPKI", "Panitia Sembilan", "Chuo Sangi In"], ans: 2 },
-{ q: "Siapakah tokoh yang menjabat sebagai Ketua Panitia Sembilan?", opt: ["Drs. Mohammad Hatta", "Mr. A.A. Maramis", "K.H. A. Wahid Hasjim", "Ir. Soekarno"], ans: 3 },
-{ q: "Hasil rumusan Panitia Sembilan yang disepakati pada tanggal 22 Juni 1945 dikenal dengan sebutan...", opt: ["Piagam Jakarta (Jakarta Charter)", "Teks Proklamasi", "Trisila", "Dekrit Presiden"], ans: 0 },
-{ q: "Rumusan Sila Pertama Pancasila dalam Piagam Jakarta sebelum disempurnakan berbunyi...", opt: ["Ketuhanan Yang Maha Esa", "Ketuhanan dengan kewajiban menjalankan syariat Islam bagi pemeluk-pemeluknya", "Kemanusiaan yang adil dan beradab", "Persatuan Indonesia"], ans: 1 },
-{ q: "Sidang Kedua BPUPK dilaksanakan pada tanggal...", opt: ["29 Mei - 1 Juni 1945", "1 - 7 Agustus 1945", "10 - 17 Juli 1945", "17 - 18 Agustus 1945"], ans: 2 },
-{ q: "Fokus utama pembahasan dalam Sidang Kedua BPUPK adalah...", opt: ["Dasar Negara", "Pemilihan Presiden dan Wakil Presiden", "Pembentukan TNI", "Rancangan Undang-Undang Dasar"], ans: 3 },
-{ q: "Dalam Sidang Kedua, BPUPK membentuk Panitia Perancang UUD yang diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 0 },
-{ q: "Panitia Kecil Perancang Undang-Undang Dasar diketuai oleh...", opt: ["Ir. Soekarno", "Mr. Soepomo", "Mr. Mohammad Yamin", "K.H. A. Wahid Hasjim"], ans: 1 },
-{ q: "Panitia Keuangan dan Perekonomian dalam BPUPK diketuai oleh...", opt: ["Abikoesno Tjokrosoejoso", "Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. A.A. Maramis"], ans: 2 },
-{ q: "BPUPK dibubarkan oleh pihak Jepang pada tanggal 7 Agustus 1945 karena...", opt: ["Gagal merumuskan UUD", "Melakukan pemberontakan", "Tidak patuh pada perintah Jepang", "Dianggap telah selesai menjalankan tugasnya"], ans: 3 },
-{ q: "Setelah BPUPK dibubarkan pada 7 Agustus 1945, badan baru yang dibentuk adalah...", opt: ["PPKI (Dokuritsu Junbi Inkai)", "PETA", "Heiho", "KNIP"], ans: 0 }
-],
+            { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
+            { q: "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", opt: ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 1 },
+            { q: "Siapakah Ketua (Kaichou) utama dari BPUPK?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], ans: 2 },
+            { q: "Nama BPUPK dalam bahasa Jepang dinamakan...", opt: ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], ans: 3 },
+            { q: "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", opt: ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], ans: 0 },
+            { q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], ans: 2 },
+            { q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 }
+        ],
         2: [
             { q: "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", opt: ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Tugas utama dari Panitia Sembilan adalah...", opt: ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], ans: 0 },
-            { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 },
-            { q: "Tokoh yang mewakili unsur Islam dari NU dalam Panitia Sembilan adalah...", opt: ["K.H. Abdul Wahid Hasjim", "K.H. Kahar Moezakir", "H. Agus Salim", "Abikoesno Tjokrosoejoso"], ans: 0 },
-            { q: "Penamaan 'Jakarta Charter' diusulkan pertama kali oleh...", opt: ["Mr. Muhammad Yamin", "Ir. Soekarno", "H. Agus Salim", "Mr. Kasman Singodimedjo"], ans: 0 },
-            { q: "Tokoh golongan kebangsaan asal Minahasa di Panitia Sembilan adalah...", opt: ["Mr. Alexander Andries Maramis", "Mr. Johannes Latuharhary", "Sam Ratulangi", "I Gusti Ketut Pudja"], ans: 0 },
-            { q: "Lokasi penandatanganan naskah Piagam Jakarta berlangsung di...", opt: ["Kediaman Ir. Soekarno (Jl. Pegangsaan Timur No. 56)", "Gedung Chuo Sangi In", "Rumah Laksamana Maeda", "Gedung Pejambon 2"], ans: 0 }
+            { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 }
         ],
         3: [
             { q: "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", opt: ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], ans: 0 },
             { q: "Sidang pertama PPKI dilaksanakan pada tanggal...", opt: ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], ans: 0 },
-            { q: "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 },
-            { q: "Jumlah anggota PPKI ditambah oleh Ir. Soekarno tanpa sepengetahuan Jepang sebanyak...", opt: ["6 Orang", "5 Orang", "7 Orang", "9 Orang"], ans: 0 },
-            { q: "Perubahan 7 kata pada Sila Pertama diputuskan sebelum sidang PPKI 18 Agustus 1945. Tokoh yang TIDAK ikut dalam diskusi cepat tersebut adalah...", opt: ["H. Agus Salim", "Ki Bagoes Hadikoesoemo", "Mr. Kasman Singodimedjo", "Teuku Mohammad Hasan"], ans: 0 },
-            { q: "Sidang PPKI kedua pada 19 Agustus 1945 membagi wilayah Indonesia menjadi...", opt: ["8 Provinsi", "12 Provinsi", "10 Provinsi", "5 Provinsi"], ans: 0 },
-            { q: "Badan yang dibentuk pada sidang PPKI 22 Agustus 1945 sebagai partai tunggal adalah...", opt: ["PNI (Partai Nasional Indonesia)", "BKR (Badan Keamanan Rakyat)", "KNIP (Komite Nasional Indonesia Pusat)", "Masyumi"], ans: 0 }
+            { q: "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 }
         ]
     };
 
     let playerNama = "";
     let playerKelas = "";
+    let playerAbsen = "";
     let currentLevel = 1;
     let score = 0;
     let moves = 25;
@@ -630,15 +647,17 @@ game_html = """
     function startGame() {
         let namaInput = document.getElementById('input-nama').value.trim();
         let kelasInput = document.getElementById('input-kelas').value.trim();
+        let absenInput = document.getElementById('input-absen').value.trim();
 
-        if (!namaInput || !kelasInput) {
-            alert('Silakan isi Nama dan Kelas terlebih dahulu sebelum memulai permainan!');
+        if (!namaInput || !kelasInput || !absenInput) {
+            alert('Silakan lengkapi Nama, Kelas, dan No. Absen terlebih dahulu!');
             return;
         }
 
         playerNama = namaInput;
         playerKelas = kelasInput;
-        document.getElementById('player-banner').innerText = `👤 Siswa: ${playerNama} | 🏫 Kelas: ${playerKelas}`;
+        playerAbsen = absenInput;
+        document.getElementById('player-banner').innerText = `👤 ${playerNama} (Absen: ${playerAbsen}) | 🏫 Kelas: ${playerKelas}`;
 
         currentLevel = 1;
         score = 0;
@@ -816,18 +835,14 @@ game_html = """
 
         while (currentMatch.matchedIndices.length > 0) {
             triggerShake();
-            
             const firstIdx = currentMatch.matchedIndices[0];
             const points = currentMatch.matchedIndices.length * 30 * combo;
             spawnFloatingText(grid[firstIdx], combo > 1 ? `COMBO x${combo}! +${points}` : `+${points}`);
 
-            currentMatch.matchedIndices.forEach(idx => {
-                grid[idx].classList.add('matched-pop');
-            });
+            currentMatch.matchedIndices.forEach(idx => grid[idx].classList.add('matched-pop'));
 
             score += points;
             updateUI();
-
             await sleep(250);
 
             currentMatch.matchedIndices.forEach(idx => {
@@ -914,7 +929,7 @@ game_html = """
                 triggerShake(document.body);
                 updateUI();
                 if (lives <= 0) {
-                    gameOver("💀 Nyawa Kamu Habis!");
+                    gameOver("💀 Nyawa Kamu Habis!", false);
                     return;
                 }
             }
@@ -924,7 +939,7 @@ game_html = """
             if (questionsAnswered >= targetQuestions) {
                 levelWin();
             } else if (moves <= 0) {
-                gameOver("💥 Langkah (Moves) Kamu Habis!");
+                gameOver("💥 Langkah (Moves) Kamu Habis!", false);
             }
         }, 800);
     }
@@ -952,7 +967,7 @@ game_html = """
 
         showScreen('screen-end');
         document.getElementById('end-title').innerText = isVictory ? "🏆 Champion Sejarah Pancasila!" : "💥 GAME OVER";
-        document.getElementById('final-player-info').innerText = `Siswa: ${playerNama} | Kelas: ${playerKelas}`;
+        document.getElementById('final-player-info').innerText = `Siswa: ${playerNama} (Absen: ${playerAbsen}) | Kelas: ${playerKelas}`;
         document.getElementById('end-desc').innerText = msg;
         document.getElementById('final-score').innerText = `${score} Poin`;
 
@@ -964,7 +979,7 @@ game_html = """
         document.getElementById('final-rank').innerText = rank;
 
         if (score > 0 && playerNama) {
-            submitGlobalScore(playerNama, playerKelas, score);
+            submitGlobalScore(playerNama, playerKelas, playerAbsen, score, isVictory);
         }
         
         fetchGlobalLeaderboard();
@@ -991,5 +1006,84 @@ game_html = """
 </html>
 """
 
-# Tampilkan Aplikasi Game di Streamlit
-components.html(game_html, height=880, scrolling=True)
+# Layout Utama Menggunakan Tab Streamlit
+tab_siswa, tab_guru = st.tabs(["🎮 Zone Main Siswa", "👨‍🏫 Dashboard Guru"])
+
+with tab_siswa:
+    components.html(game_html, height=880, scrolling=True)
+
+with tab_guru:
+    st.title("👨‍🏫 Dashboard Pemantauan Guru")
+    st.caption("Pantau progres dan hasil akhir siswa yang memainkan Game Nusantara Gem Crush.")
+
+    col_btn, _ = st.columns([1, 4])
+    with col_btn:
+        if st.button("🔄 Refresh Data Realtime"):
+            st.rerun()
+
+    df = fetch_firebase_data()
+
+    if df.empty:
+        st.info("Belum ada data siswa yang tercatat atau bermain saat ini.")
+    else:
+        # Menyelaraskan Kolom
+        expected_cols = ['nama', 'kelas', 'absen', 'score', 'status', 'waktu', 'isVictory']
+        for col in expected_cols:
+            if col not in df.columns:
+                df[col] = "-"
+
+        df['absen'] = pd.to_numeric(df['absen'], errors='coerce').fillna(0).astype(int)
+        df['score'] = pd.to_numeric(df['score'], errors='coerce').fillna(0).astype(int)
+
+        # Metrik Ringkasan
+        total_siswa = len(df)
+        total_lulus = len(df[df['isVictory'] == True])
+        rata_skor = int(df['score'].mean()) if total_siswa > 0 else 0
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Total Percobaan Siswa", f"{total_siswa} Kali")
+        m2.metric("Siswa Tamat 🎉", f"{total_lulus} Siswa")
+        m3.metric("Rata-rata Skor", f"{rata_skor} Poin")
+
+        st.markdown("---")
+
+        # Filter Siswa
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            daftar_kelas = ["Semua Kelas"] + sorted(list(df['kelas'].astype(str).unique()))
+            selected_kelas = st.selectbox("Filter Berdasarkan Kelas:", daftar_kelas)
+        
+        with col_f2:
+            filter_status = st.radio("Tampilkan Status:", ["Semua Siswa", "Hanya yang BERHASIL TAMAT 🎉"], horizontal=True)
+
+        filtered_df = df.copy()
+        if selected_kelas != "Semua Kelas":
+            filtered_df = filtered_df[filtered_df['kelas'].astype(str) == selected_kelas]
+        
+        if filter_status == "Hanya yang BERHASIL TAMAT 🎉":
+            filtered_df = filtered_df[filtered_df['isVictory'] == True]
+
+        # Urutkan berdasarkan Kelas, Absen, & Skor
+        filtered_df = filtered_df.sort_values(by=['kelas', 'absen', 'score'], ascending=[True, True, False])
+
+        # Tampilkan Tabel Data
+        display_df = filtered_df[['nama', 'kelas', 'absen', 'score', 'status', 'waktu']].rename(columns={
+            'nama': 'Nama Siswa',
+            'kelas': 'Kelas',
+            'absen': 'No. Absen',
+            'score': 'Skor Akhir',
+            'status': 'Status Penyelesaian',
+            'waktu': 'Waktu Bermain'
+        })
+
+        st.subheader("📋 Rekap Hasil Permainan Siswa")
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        # Download CSV
+        csv_data = display_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Rekap Data Siswa (CSV)",
+            data=csv_data,
+            file_name="Rekap_Game_Pancasila.csv",
+            mime="text/csv"
+        )

@@ -34,7 +34,6 @@ st.markdown("""
         border-radius: 16px;
         width: 100% !important;
     }
-    /* Style Tab Streamlit */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
     }
@@ -97,6 +96,17 @@ def fetch_firebase_data():
         st.error(f"Gagal terhubung ke database: {e}")
     return pd.DataFrame()
 
+# Function Hapus Semua Data Siswa dari Firebase
+def delete_firebase_data():
+    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/leaderboard.json"
+    try:
+        req = urllib.request.Request(url, method='DELETE')
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return True
+    except Exception as e:
+        st.error(f"Gagal menghapus data dari database: {e}")
+        return False
+
 # Function untuk membuat file template Excel
 def generate_excel_template():
     data = [
@@ -106,8 +116,12 @@ def generate_excel_template():
     ]
     df_template = pd.DataFrame(data)
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df_template.to_excel(writer, index=False, sheet_name='BankSoal')
+    try:
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df_template.to_excel(writer, index=False, sheet_name='BankSoal')
+    except ModuleNotFoundError:
+        st.error("Pustaka 'openpyxl' belum terpasang di server. Mohon tambahkan 'openpyxl' ke file requirements.txt.")
+        return b""
     return buffer.getvalue()
 
 # Function parsing file Excel menjadi format JSON Bank Soal
@@ -375,7 +389,7 @@ game_html_template = """
 
     <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; text-align: left; border: 1px solid rgba(255, 215, 0, 0.2);">
         📜 <b>Materi & Aturan Main:</b><br>
-        • Materi: <b>BPUPK (Lvl 1), Panitia 9 (Lvl 2), PPKI (Lvl 3)</b>.<br>
+        • Level Permainan: <b>Level 1, Level 2, Level 3</b>.<br>
         • Modal: <b>25 Moves</b> & <b>3 Nyawa (❤️)</b> per Level.<br>
         • Jawaban Salah / Waktu Habis = <b>Nyawa (❤️) Berkurang 1</b>.
     </div>
@@ -427,7 +441,7 @@ game_html_template = """
 
 <div class="modal-overlay hidden" id="quiz-modal">
     <div style="width: 100%; max-width: 440px; text-align: center;" class="card">
-        <div style="font-size: 11px; color: #ffd700; font-weight: bold;" id="modal-tag">KUIS KELAHIRAN PANCASILA</div>
+        <div style="font-size: 11px; color: #ffd700; font-weight: bold;" id="modal-tag">KUIS SEJARAH PANCASILA</div>
         <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
         <h3 id="quiz-question" style="font-size: 14px; margin: 10px 0 15px 0; min-height: 40px; line-height: 1.4;">Pertanyaan...</h3>
         <div id="quiz-options"></div>
@@ -561,7 +575,6 @@ game_html_template = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
-    // Bank Soal Dinamis Injected dari Python
     const questionsDB = %%QUESTIONS_DB%%;
 
     let playerNama = "";
@@ -1031,10 +1044,17 @@ with tab_guru:
         with tab_nilai:
             st.caption("Pantau progres dan hasil akhir siswa secara realtime.")
 
-            col_btn, _ = st.columns([1, 4])
+            col_btn, col_del = st.columns([1, 1])
             with col_btn:
                 if st.button("🔄 Refresh Data Realtime"):
                     st.rerun()
+            with col_del:
+                with st.popover("🗑️ Hapus Semua Data Siswa"):
+                    st.warning("⚠️ Apakah Anda yakin ingin menghapus SELURUH data permainan siswa dari database?")
+                    if st.button("Ya, Hapus Semua Data Sekarang", type="primary"):
+                        if delete_firebase_data():
+                            st.success("✅ Seluruh data siswa berhasil dihapus!")
+                            st.rerun()
 
             df = fetch_firebase_data()
 
@@ -1106,7 +1126,7 @@ with tab_guru:
             Anda dapat memperbarui seluruh bank soal kuis yang muncul di dalam game dengan mengunggah file Excel (`.xlsx`).
             
             **Format Kolom Excel Wajib:**
-            - **level** : `1` (BPUPK), `2` (Panitia 9), atau `3` (PPKI)
+            - **level** : `1` (Level 1), `2` (Level 2), atau `3` (Level 3)
             - **pertanyaan** : Teks pertanyaan kuis
             - **pilihan_a** : Teks opsi pilihan A
             - **pilihan_b** : Teks opsi pilihan B
@@ -1117,12 +1137,13 @@ with tab_guru:
 
             # Download Template
             template_excel = generate_excel_template()
-            st.download_button(
-                label="📥 Unduh Templat Excel Bank Soal",
-                data=template_excel,
-                file_name="Template_Bank_Soal_Pancasila.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            if template_excel:
+                st.download_button(
+                    label="📥 Unduh Templat Excel Bank Soal",
+                    data=template_excel,
+                    file_name="Template_Bank_Soal_Pancasila.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
             st.markdown("---")
 
@@ -1142,7 +1163,7 @@ with tab_guru:
             st.markdown("---")
             st.subheader("👀 Preview Soal yang Aktif Saat Ini")
             
-            lvl_select = st.selectbox("Pilih Level untuk Dilihat:", ["Level 1 (BPUPK)", "Level 2 (Panitia 9)", "Level 3 (PPKI)"])
+            lvl_select = st.selectbox("Pilih Level untuk Dilihat:", ["Level 1", "Level 2", "Level 3"])
             lvl_key = "1" if "1" in lvl_select else "2" if "2" in lvl_select else "3"
             
             soal_list = st.session_state.questions_db.get(lvl_key, [])

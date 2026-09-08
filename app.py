@@ -52,7 +52,30 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Function Fetch Data Firebase untuk Dashboard Guru
+# Default Bank Soal jika Firebase belum memiliki data soal
+DEFAULT_QUESTIONS = {
+    "1": [
+        {"q": "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", "opt": ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], "ans": 0},
+        {"q": "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", "opt": ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], "ans": 1},
+        {"q": "Siapakah Ketua (Kaichou) utama dari BPUPK?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], "ans": 2},
+        {"q": "Nama BPUPK dalam bahasa Jepang dinamakan...", "opt": ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], "ans": 3},
+        {"q": "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", "opt": ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], "ans": 0},
+        {"q": "Sidang Pertama BPUPK berlangsung dari tanggal...", "opt": ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], "ans": 2},
+        {"q": "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", "opt": ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], "ans": 0}
+    ],
+    "2": [
+        {"q": "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", "opt": ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], "ans": 0},
+        {"q": "Tugas utama dari Panitia Sembilan adalah...", "opt": ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], "ans": 0},
+        {"q": "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], "ans": 0}
+    ],
+    "3": [
+        {"q": "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", "opt": ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], "ans": 0},
+        {"q": "Sidang pertama PPKI dilaksanakan pada tanggal...", "opt": ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], "ans": 0},
+        {"q": "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", "opt": ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], "ans": 0}
+    ]
+}
+
+# Function Fetch Data Leaderboard dari Firebase
 def fetch_firebase_data():
     url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/leaderboard.json"
     try:
@@ -64,11 +87,36 @@ def fetch_firebase_data():
                 df = pd.DataFrame(records)
                 return df
     except Exception as e:
-        st.error(f"Gagal terhubung ke database: {e}")
+        st.error(f"Gagal terhubung ke database leaderboard: {e}")
     return pd.DataFrame()
 
-# Single Bundle Engine HTML5 + CSS + JavaScript (Siswa)
-game_html = """
+# Function Fetch Questions dari Firebase
+def fetch_questions():
+    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/questions.json"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data:
+                return data
+    except Exception:
+        pass
+    return DEFAULT_QUESTIONS
+
+# Function Save Questions ke Firebase
+def save_questions(questions_data):
+    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/questions.json"
+    try:
+        payload = json.dumps(questions_data).encode('utf-8')
+        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'}, method='PUT')
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return True
+    except Exception as e:
+        st.error(f"Gagal menyimpan ke database: {e}")
+        return False
+
+# Master Template Engine HTML5 + CSS + JavaScript (Siswa)
+game_html_template = """
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -559,27 +607,8 @@ game_html = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
-    const questionsDB = {
-        1: [
-            { q: "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", opt: ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], ans: 0 },
-            { q: "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", opt: ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], ans: 1 },
-            { q: "Siapakah Ketua (Kaichou) utama dari BPUPK?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], ans: 2 },
-            { q: "Nama BPUPK dalam bahasa Jepang dinamakan...", opt: ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], ans: 3 },
-            { q: "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", opt: ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], ans: 0 },
-            { q: "Sidang Pertama BPUPK berlangsung dari tanggal...", opt: ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], ans: 2 },
-            { q: "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", opt: ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], ans: 0 }
-        ],
-        2: [
-            { q: "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", opt: ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], ans: 0 },
-            { q: "Tugas utama dari Panitia Sembilan adalah...", opt: ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], ans: 0 },
-            { q: "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", opt: ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], ans: 0 }
-        ],
-        3: [
-            { q: "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", opt: ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], ans: 0 },
-            { q: "Sidang pertama PPKI dilaksanakan pada tanggal...", opt: ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], ans: 0 },
-            { q: "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", opt: ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], ans: 0 }
-        ]
-    };
+    // Bank Soal Dihubungkan secara Dinamis dari Python Backend
+    const questionsDB = __QUESTIONS_JSON__;
 
     let playerNama = "";
     let playerKelas = "";
@@ -671,7 +700,10 @@ game_html = """
         questionsAnswered = 0;
         levelTimeLeft = levelTimeLimits[currentLevel] || 300;
         
-        let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
+        let rawQuestions = questionsDB[currentLevel] || questionsDB[String(currentLevel)] || [];
+        if(!rawQuestions || rawQuestions.length === 0) {
+            rawQuestions = questionsDB[1] || questionsDB["1"] || [];
+        }
         currentQuestionPool = shuffleArray(rawQuestions);
 
         updateUI();
@@ -864,31 +896,36 @@ game_html = """
 
     function triggerQuiz() {
         if (currentQuestionPool.length === 0) {
-            let rawQuestions = questionsDB[currentLevel] || questionsDB[1];
+            let rawQuestions = questionsDB[currentLevel] || questionsDB[String(currentLevel)] || [];
+            if(!rawQuestions || rawQuestions.length === 0) {
+                rawQuestions = questionsDB[1] || questionsDB["1"] || [];
+            }
             currentQuestionPool = shuffleArray(rawQuestions);
         }
 
         let qObj = currentQuestionPool.pop();
 
         document.getElementById('modal-tag').innerText = `KUIS LEVEL ${currentLevel} - SEJARAH PANCASILA`;
-        document.getElementById('quiz-question').innerText = qObj.q;
+        document.getElementById('quiz-question').innerText = qObj ? qObj.q : "Pertanyaan tidak tersedia.";
 
         let optionsContainer = document.getElementById('quiz-options');
         optionsContainer.innerHTML = '';
 
-        let optionsList = qObj.opt.map((optText, index) => ({
-            text: optText,
-            isCorrect: index === qObj.ans
-        }));
-        optionsList = shuffleArray(optionsList);
+        if(qObj && qObj.opt) {
+            let optionsList = qObj.opt.map((optText, index) => ({
+                text: optText,
+                isCorrect: index === qObj.ans
+            }));
+            optionsList = shuffleArray(optionsList);
 
-        optionsList.forEach(optItem => {
-            let btn = document.createElement('button');
-            btn.classList.add('opt-btn');
-            btn.innerText = optItem.text;
-            btn.onclick = () => handleAnswer(optItem.isCorrect, btn);
-            optionsContainer.appendChild(btn);
-        });
+            optionsList.forEach(optItem => {
+                let btn = document.createElement('button');
+                btn.classList.add('opt-btn');
+                btn.innerText = optItem.text;
+                btn.onclick = () => handleAnswer(optItem.isCorrect, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
 
         document.getElementById('quiz-modal').classList.remove('hidden');
 
@@ -1006,84 +1043,215 @@ game_html = """
 </html>
 """
 
+# Inisialisasi Session State untuk Login Guru
+if "teacher_logged_in" not in st.session_state:
+    st.session_state["teacher_logged_in"] = False
+
 # Layout Utama Menggunakan Tab Streamlit
 tab_siswa, tab_guru = st.tabs(["🎮 Zone Main Siswa", "👨‍🏫 Dashboard Guru"])
 
 with tab_siswa:
-    components.html(game_html, height=880, scrolling=True)
+    # Ambil soal terbaru dari database untuk komponen game
+    current_questions = fetch_questions()
+    rendered_game_html = game_html_template.replace("__QUESTIONS_JSON__", json.dumps(current_questions))
+    components.html(rendered_game_html, height=880, scrolling=True)
 
 with tab_guru:
-    st.title("👨‍🏫 Dashboard Pemantauan Guru")
-    st.caption("Pantau progres dan hasil akhir siswa yang memainkan Game Nusantara Gem Crush.")
+    st.title("👨‍🏫 Dashboard Pengelolaan & Pemantauan Guru")
 
-    col_btn, _ = st.columns([1, 4])
-    with col_btn:
-        if st.button("🔄 Refresh Data Realtime"):
-            st.rerun()
+    # Cek Status Login Guru
+    if not st.session_state["teacher_logged_in"]:
+        st.subheader("🔒 Autentikasi Guru")
+        st.info("Silakan masukan kredensial login Anda untuk mengakses Rekap Nilai Siswa dan Mengedit Bank Soal.")
+        
+        col_login, _ = st.columns([2, 3])
+        with col_login:
+            with st.form("form_login_guru"):
+                username = st.text_input("Username Guru:")
+                password = st.text_input("Password:", type="password")
+                btn_login = st.form_submit_button("🔑 Login Guru")
 
-    df = fetch_firebase_data()
-
-    if df.empty:
-        st.info("Belum ada data siswa yang tercatat atau bermain saat ini.")
+                if btn_login:
+                    # Kredensial Default Guru (Dapat disesuaikan)
+                    if username == "guru" and password == "pancasila123":
+                        st.session_state["teacher_logged_in"] = True
+                        st.success("Login berhasil!")
+                        st.rerun()
+                    else:
+                        st.error("Username atau Password salah!")
     else:
-        # Menyelaraskan Kolom
-        expected_cols = ['nama', 'kelas', 'absen', 'score', 'status', 'waktu', 'isVictory']
-        for col in expected_cols:
-            if col not in df.columns:
-                df[col] = "-"
-
-        df['absen'] = pd.to_numeric(df['absen'], errors='coerce').fillna(0).astype(int)
-        df['score'] = pd.to_numeric(df['score'], errors='coerce').fillna(0).astype(int)
-
-        # Metrik Ringkasan
-        total_siswa = len(df)
-        total_lulus = len(df[df['isVictory'] == True])
-        rata_skor = int(df['score'].mean()) if total_siswa > 0 else 0
-
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Total Percobaan Siswa", f"{total_siswa} Kali")
-        m2.metric("Siswa Tamat 🎉", f"{total_lulus} Siswa")
-        m3.metric("Rata-rata Skor", f"{rata_skor} Poin")
+        # Header Guru Logged In
+        col_header_1, col_header_2 = st.columns([4, 1])
+        with col_header_1:
+            st.success("🟢 Terhubung sebagai: **Guru / Administrator**")
+        with col_header_2:
+            if st.button("🚪 Logout"):
+                st.session_state["teacher_logged_in"] = False
+                st.rerun()
 
         st.markdown("---")
 
-        # Filter Siswa
-        col_f1, col_f2 = st.columns(2)
-        with col_f1:
-            daftar_kelas = ["Semua Kelas"] + sorted(list(df['kelas'].astype(str).unique()))
-            selected_kelas = st.selectbox("Filter Berdasarkan Kelas:", daftar_kelas)
-        
-        with col_f2:
-            filter_status = st.radio("Tampilkan Status:", ["Semua Siswa", "Hanya yang BERHASIL TAMAT 🎉"], horizontal=True)
+        # Tab Sub-Menu Guru
+        sub_tab_nilai, sub_tab_soal = st.tabs(["📊 Rekap Nilai Siswa", "📝 Kelola Bank Soal"])
 
-        filtered_df = df.copy()
-        if selected_kelas != "Semua Kelas":
-            filtered_df = filtered_df[filtered_df['kelas'].astype(str) == selected_kelas]
-        
-        if filter_status == "Hanya yang BERHASIL TAMAT 🎉":
-            filtered_df = filtered_df[filtered_df['isVictory'] == True]
+        # SUB-TAB 1: REKAP NILAI SISWA
+        with sub_tab_nilai:
+            st.subheader("📋 Hasil Permainan Siswa Realtime")
 
-        # Urutkan berdasarkan Kelas, Absen, & Skor
-        filtered_df = filtered_df.sort_values(by=['kelas', 'absen', 'score'], ascending=[True, True, False])
+            col_btn, _ = st.columns([1, 4])
+            with col_btn:
+                if st.button("🔄 Refresh Data Realtime"):
+                    st.rerun()
 
-        # Tampilkan Tabel Data
-        display_df = filtered_df[['nama', 'kelas', 'absen', 'score', 'status', 'waktu']].rename(columns={
-            'nama': 'Nama Siswa',
-            'kelas': 'Kelas',
-            'absen': 'No. Absen',
-            'score': 'Skor Akhir',
-            'status': 'Status Penyelesaian',
-            'waktu': 'Waktu Bermain'
-        })
+            df = fetch_firebase_data()
 
-        st.subheader("📋 Rekap Hasil Permainan Siswa")
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+            if df.empty:
+                st.info("Belum ada data siswa yang tercatat atau bermain saat ini.")
+            else:
+                expected_cols = ['nama', 'kelas', 'absen', 'score', 'status', 'waktu', 'isVictory']
+                for col in expected_cols:
+                    if col not in df.columns:
+                        df[col] = "-"
 
-        # Download CSV
-        csv_data = display_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Rekap Data Siswa (CSV)",
-            data=csv_data,
-            file_name="Rekap_Game_Pancasila.csv",
-            mime="text/csv"
-        )
+                df['absen'] = pd.to_numeric(df['absen'], errors='coerce').fillna(0).astype(int)
+                df['score'] = pd.to_numeric(df['score'], errors='coerce').fillna(0).astype(int)
+
+                # Metrik Ringkasan
+                total_siswa = len(df)
+                total_lulus = len(df[df['isVictory'] == True])
+                rata_skor = int(df['score'].mean()) if total_siswa > 0 else 0
+
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Total Percobaan Siswa", f"{total_siswa} Kali")
+                m2.metric("Siswa Tamat 🎉", f"{total_lulus} Siswa")
+                m3.metric("Rata-rata Skor", f"{rata_skor} Poin")
+
+                st.markdown("---")
+
+                col_f1, col_f2 = st.columns(2)
+                with col_f1:
+                    daftar_kelas = ["Semua Kelas"] + sorted(list(df['kelas'].astype(str).unique()))
+                    selected_kelas = st.selectbox("Filter Berdasarkan Kelas:", daftar_kelas)
+                
+                with col_f2:
+                    filter_status = st.radio("Tampilkan Status:", ["Semua Siswa", "Hanya yang BERHASIL TAMAT 🎉"], horizontal=True)
+
+                filtered_df = df.copy()
+                if selected_kelas != "Semua Kelas":
+                    filtered_df = filtered_df[filtered_df['kelas'].astype(str) == selected_kelas]
+                
+                if filter_status == "Hanya yang BERHASIL TAMAT 🎉":
+                    filtered_df = filtered_df[filtered_df['isVictory'] == True]
+
+                filtered_df = filtered_df.sort_values(by=['kelas', 'absen', 'score'], ascending=[True, True, False])
+
+                display_df = filtered_df[['nama', 'kelas', 'absen', 'score', 'status', 'waktu']].rename(columns={
+                    'nama': 'Nama Siswa',
+                    'kelas': 'Kelas',
+                    'absen': 'No. Absen',
+                    'score': 'Skor Akhir',
+                    'status': 'Status Penyelesaian',
+                    'waktu': 'Waktu Bermain'
+                })
+
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+                csv_data = display_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Download Rekap Data Siswa (CSV)",
+                    data=csv_data,
+                    file_name="Rekap_Game_Pancasila.csv",
+                    mime="text/csv"
+                )
+
+        # SUB-TAB 2: KELOLA BANK SOAL
+        with sub_tab_soal:
+            st.subheader("✏️ Editor Bank Soal Kuis")
+            st.caption("Perubahan pada soal akan langsung diterapkan dalam permainan siswa saat halaman dimuat ulang.")
+
+            # Load Data Soal dari Firebase ke Session State jika belum ada
+            if "questions_editor" not in st.session_state:
+                st.session_state["questions_editor"] = fetch_questions()
+
+            # Pilihan Level yang ingin diedit
+            level_options = {
+                "1": "Level 1: BPUPK (Kelahiran Pancasila)",
+                "2": "Level 2: Panitia Sembilan (Piagam Jakarta)",
+                "3": "Level 3: PPKI (Pengesahan UUD 1945)"
+            }
+            selected_lvl_key = st.selectbox(
+                "Pilih Level yang Ingin Diedit:",
+                options=list(level_options.keys()),
+                format_func=lambda x: level_options[x]
+            )
+
+            current_lvl_questions = st.session_state["questions_editor"].get(selected_lvl_key, [])
+
+            st.write(f"**Daftar Soal {level_options[selected_lvl_key]} ({len(current_lvl_questions)} Soal):**")
+
+            # Form Pengeditan Soal-soal
+            questions_to_delete = []
+            for idx, item in enumerate(current_lvl_questions):
+                with st.expander(f"📌 Soal #{idx + 1}: {item['q'][:60]}..."):
+                    # Edit Pertanyaan
+                    new_q = st.text_area(f"Pertanyaan Soal #{idx+1}:", value=item['q'], key=f"q_{selected_lvl_key}_{idx}")
+                    
+                    # Edit Opsi
+                    c1, c2 = st.columns(2)
+                    opts = item['opt']
+                    with c1:
+                        opt_a = st.text_input(f"Opsi A:", value=opts[0] if len(opts)>0 else "", key=f"opt_a_{selected_lvl_key}_{idx}")
+                        opt_b = st.text_input(f"Opsi B:", value=opts[1] if len(opts)>1 else "", key=f"opt_b_{selected_lvl_key}_{idx}")
+                    with c2:
+                        opt_c = st.text_input(f"Opsi C:", value=opts[2] if len(opts)>2 else "", key=f"opt_c_{selected_lvl_key}_{idx}")
+                        opt_d = st.text_input(f"Opsi D:", value=opts[3] if len(opts)>3 else "", key=f"opt_d_{selected_lvl_key}_{idx}")
+
+                    # Edit Kunci Jawaban
+                    ans_map = {"A (Opsi 1)": 0, "B (Opsi 2)": 1, "C (Opsi 3)": 2, "D (Opsi 4)": 3}
+                    current_ans_index = item.get('ans', 0)
+                    selected_ans_str = st.selectbox(
+                        f"Kunci Jawaban Benar:",
+                        options=list(ans_map.keys()),
+                        index=current_ans_index if current_ans_index in [0, 1, 2, 3] else 0,
+                        key=f"ans_{selected_lvl_key}_{idx}"
+                    )
+
+                    # Update ke Session State
+                    st.session_state["questions_editor"][selected_lvl_key][idx] = {
+                        "q": new_q,
+                        "opt": [opt_a, opt_b, opt_c, opt_d],
+                        "ans": ans_map[selected_ans_str]
+                    }
+
+                    # Hapus Soal
+                    if st.button(f"🗑️ Hapus Soal #{idx+1}", key=f"del_{selected_lvl_key}_{idx}"):
+                        questions_to_delete.append(idx)
+
+            # Proses Penghapusan Soal
+            if questions_to_delete:
+                for del_idx in reversed(questions_to_delete):
+                    st.session_state["questions_editor"][selected_lvl_key].pop(del_idx)
+                st.rerun()
+
+            st.markdown("---")
+            
+            col_add, col_save = st.columns(2)
+            with col_add:
+                if st.button("➕ Tambah Soal Baru"):
+                    new_default_question = {
+                        "q": "Tulis pertanyaan baru di sini...",
+                        "opt": ["Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D"],
+                        "ans": 0
+                    }
+                    if selected_lvl_key not in st.session_state["questions_editor"]:
+                        st.session_state["questions_editor"][selected_lvl_key] = []
+                    st.session_state["questions_editor"][selected_lvl_key].append(new_default_question)
+                    st.rerun()
+
+            with col_save:
+                if st.button("💾 Simpan Perubahan Bank Soal ke Database", type="primary"):
+                    success = save_questions(st.session_state["questions_editor"])
+                    if success:
+                        st.success("✅ Bank Soal berhasil diperbarui di database Firebase!")
+                    else:
+                        st.error("❌ Gagal menyimpan Bank Soal!")

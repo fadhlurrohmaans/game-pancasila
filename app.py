@@ -4,6 +4,7 @@ import urllib.request
 import json
 import pandas as pd
 import io
+import os
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
@@ -75,14 +76,61 @@ DEFAULT_QUESTIONS = {
     ]
 }
 
+FIREBASE_BANK_SOAL_URL = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/bank_soal.json"
+LOCAL_FILE_PATH = "bank_soal_data.json"
+
+# Function Load Bank Soal dari Database / File / Default
+def load_bank_soal():
+    # 1. Coba dari Firebase
+    try:
+        req = urllib.request.Request(FIREBASE_BANK_SOAL_URL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data and isinstance(data, dict) and any(k in data for k in ["1", "2", "3"]):
+                return data
+    except Exception:
+        pass
+
+    # 2. Coba dari File Lokal
+    try:
+        if os.path.exists(LOCAL_FILE_PATH):
+            with open(LOCAL_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if data and isinstance(data, dict) and any(k in data for k in ["1", "2", "3"]):
+                    return data
+    except Exception:
+        pass
+
+    # 3. Fallback Default
+    return DEFAULT_QUESTIONS
+
+# Function Save Bank Soal ke Firebase & File Lokal
+def save_bank_soal(data_dict):
+    # Simpan File Lokal
+    try:
+        with open(LOCAL_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data_dict, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"Error menyimpan file lokal: {e}")
+
+    # Simpan Firebase
+    try:
+        payload = json.dumps(data_dict).encode('utf-8')
+        req = urllib.request.Request(FIREBASE_BANK_SOAL_URL, data=payload, headers={'Content-Type': 'application/json'}, method='PUT')
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return True
+    except Exception as e:
+        st.warning(f"Bank soal tersimpan secara lokal, namun gagal tersinkronkan ke Firebase: {e}")
+        return False
+
 # Inisialisasi Session State
 if 'questions_db' not in st.session_state:
-    st.session_state.questions_db = DEFAULT_QUESTIONS
+    st.session_state.questions_db = load_bank_soal()
 
 if 'logged_in_guru' not in st.session_state:
     st.session_state.logged_in_guru = False
 
-# Function Fetch Data Firebase untuk Dashboard Guru
+# Function Fetch Data Leaderboard dari Firebase
 def fetch_firebase_data():
     url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/leaderboard.json"
     try:
@@ -124,10 +172,12 @@ def generate_excel_template():
         return b""
     return buffer.getvalue()
 
-# Function parsing file Excel menjadi format JSON Bank Soal
+# Function parsing file Excel menjadi format JSON Bank Soal (Disempurnakan)
 def process_uploaded_excel(uploaded_file):
     df = pd.read_excel(uploaded_file)
-    df.columns = df.columns.str.strip().str.lower()
+    
+    # Normalisasi Nama Kolom (hilangkan spasi berlebih, huruf kecil, ganti spasi dengan underscore)
+    df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(' ', '_')
     
     required_cols = ['level', 'pertanyaan', 'pilihan_a', 'pilihan_b', 'pilihan_c', 'pilihan_d', 'jawaban_benar']
     for col in required_cols:
@@ -135,27 +185,46 @@ def process_uploaded_excel(uploaded_file):
             raise ValueError(f"Kolom wajib '{col}' tidak ditemukan di file Excel.")
     
     new_db = {"1": [], "2": [], "3": []}
-    ans_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3, '0': 0, '1': 1, '2': 2, '3': 3}
+    ans_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3, '0': 0, '1': 1, '2': 2, '3': 3, '1.0': 0, '2.0': 1, '3.0': 2, '4.0': 3}
 
     for _, row in df.iterrows():
-        lvl = str(int(row['level'])).strip()
-        if lvl not in new_db:
-            continue
-        
+        # Ekstrak Angka Level
+        raw_lvl = str(row['level']).strip()
+        digits = ''.join(filter(str.isdigit, raw_lvl))
+        lvl = digits if digits in ["1", "2", "3"] else "1"
+
+        q_text = str(row['pertanyaan']).strip()
+        opt_a = str(row['pilihan_a']).strip()
+        opt_b = str(row['pilihan_b']).strip()
+        opt_c = str(row['pilihan_c']).strip()
+        opt_d = str(row['pilihan_d']).strip()
+
+        # Ekstrak Jawaban Benar
         raw_ans = str(row['jawaban_benar']).strip().upper()
-        ans_idx = ans_map.get(raw_ans, 0)
+        if raw_ans in ans_map:
+            ans_idx = ans_map[raw_ans]
+        else:
+            opts_upper = [opt_a.upper(), opt_b.upper(), opt_c.upper(), opt_d.upper()]
+            if raw_ans in opts_upper:
+                ans_idx = opts_upper.index(raw_ans)
+            else:
+                ans_idx = 0
 
         new_db[lvl].append({
-            "q": str(row['pertanyaan']).strip(),
-            "opt": [
-                str(row['pilihan_a']).strip(),
-                str(row['pilihan_b']).strip(),
-                str(row['pilihan_c']).strip(),
-                str(row['pilihan_d']).strip()
-            ],
+            "q": q_text,
+            "opt": [opt_a, opt_b, opt_c, opt_d],
             "ans": ans_idx
         })
+
+    # Cek apakah ada minimal 1 soal yang berhasil terbaca
+    if sum(len(v) for v in new_db.values()) == 0:
+        raise ValueError("Tidak ada soal valid yang berhasil diproses dari file Excel.")
+
     return new_db
+
+# Sync Bank Soal Terkini Sebelum Render
+current_questions_db = load_bank_soal()
+st.session_state.questions_db = current_questions_db
 
 # Template HTML/JS Game
 game_html_template = """
@@ -494,6 +563,23 @@ game_html_template = """
         console.warn("Firebase bermasalah:", e);
     }
 
+    let questionsDB = %%QUESTIONS_DB%%;
+
+    // Sync Bank Soal Realtime dari Firebase
+    function fetchBankSoalRealtime() {
+        if (!db) return;
+        try {
+            db.ref('bank_soal').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && typeof data === 'object' && (data["1"] || data["2"] || data["3"])) {
+                    questionsDB = data;
+                }
+            });
+        } catch(e) {
+            console.warn("Gagal memuat bank soal realtime:", e);
+        }
+    }
+
     function submitGlobalScore(nama, kelas, absen, totalSkor, isVictory) {
         if (!db || totalSkor <= 0) return;
         try {
@@ -574,8 +660,6 @@ game_html_template = """
 
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
-
-    const questionsDB = %%QUESTIONS_DB%%;
 
     let playerNama = "";
     let playerKelas = "";
@@ -658,6 +742,7 @@ game_html_template = """
         currentLevel = 1;
         score = 0;
         lives = 3;
+        fetchBankSoalRealtime();
         showScreen('screen-game');
         initLevel();
     }
@@ -775,28 +860,35 @@ game_html_template = """
         applyGemStyle(tile2);
     }
 
+    // Deteksi Match-3 Sempurna
     function findAndMarkMatches() {
         let matchedIndices = new Set();
         let matchedSymbol = "";
 
+        // Horizontal Match
         for (let r = 0; r < width; r++) {
             for (let c = 0; c < width - 2; c++) {
-                let idx = r * width + c;
-                let symbol = grid[idx].innerText;
-                if (symbol && symbol === grid[idx+1].innerText && symbol === grid[idx+2].innerText) {
-                    matchedIndices.add(idx); matchedIndices.add(idx+1); matchedIndices.add(idx+2);
-                    matchedSymbol = symbol;
+                let i1 = r * width + c;
+                let i2 = r * width + c + 1;
+                let i3 = r * width + c + 2;
+                let s1 = grid[i1].innerText;
+                if (s1 && s1 === grid[i2].innerText && s1 === grid[i3].innerText) {
+                    matchedIndices.add(i1); matchedIndices.add(i2); matchedIndices.add(i3);
+                    matchedSymbol = s1;
                 }
             }
         }
 
+        // Vertical Match
         for (let c = 0; c < width; c++) {
             for (let r = 0; r < width - 2; r++) {
-                let idx = r * width + c;
-                let symbol = grid[idx].innerText;
-                if (symbol && symbol === grid[idx-width] ? false : (symbol && symbol === grid[idx+width].innerText && symbol === grid[idx+width*2].innerText)) {
-                    matchedIndices.add(idx); matchedIndices.add(idx+width); matchedIndices.add(idx+width*2);
-                    matchedSymbol = symbol;
+                let i1 = r * width + c;
+                let i2 = (r + 1) * width + c;
+                let i3 = (r + 2) * width + c;
+                let s1 = grid[i1].innerText;
+                if (s1 && s1 === grid[i2].innerText && s1 === grid[i3].innerText) {
+                    matchedIndices.add(i1); matchedIndices.add(i2); matchedIndices.add(i3);
+                    matchedSymbol = s1;
                 }
             }
         }
@@ -996,7 +1088,10 @@ game_html_template = """
         });
     }
 
-    window.onload = fetchGlobalLeaderboard;
+    window.onload = function() {
+        fetchBankSoalRealtime();
+        fetchGlobalLeaderboard();
+    };
 </script>
 </body>
 </html>
@@ -1135,15 +1230,24 @@ with tab_guru:
             - **jawaban_benar** : Jawaban benar (`A`, `B`, `C`, atau `D`)
             """)
 
-            # Download Template
-            template_excel = generate_excel_template()
-            if template_excel:
-                st.download_button(
-                    label="📥 Unduh Templat Excel Bank Soal",
-                    data=template_excel,
-                    file_name="Template_Bank_Soal_Pancasila.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+            col_tpl, col_rst = st.columns([1, 1])
+            with col_tpl:
+                # Download Template
+                template_excel = generate_excel_template()
+                if template_excel:
+                    st.download_button(
+                        label="📥 Unduh Templat Excel Bank Soal",
+                        data=template_excel,
+                        file_name="Template_Bank_Soal_Pancasila.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
+                    )
+            with col_rst:
+                if st.button("↺ Reset ke Bank Soal Default", use_container_width=True):
+                    save_bank_soal(DEFAULT_QUESTIONS)
+                    st.session_state.questions_db = DEFAULT_QUESTIONS
+                    st.success("✅ Bank Soal telah dikembalikan ke standar default!")
+                    st.rerun()
 
             st.markdown("---")
 
@@ -1153,8 +1257,9 @@ with tab_guru:
                 if st.button("🚀 Terapkan & Update Bank Soal Game"):
                     try:
                         parsed_db = process_uploaded_excel(uploaded_file)
+                        save_bank_soal(parsed_db)
                         st.session_state.questions_db = parsed_db
-                        st.success("✅ Bank Soal berhasil diperbarui! Game siswa kini menggunakan soal terbaru.")
+                        st.success("✅ Bank Soal berhasil diperbarui secara terpusat! Semua siswa akan secara otomatis mendapatkan soal baru.")
                         st.rerun()
                     except Exception as e:
                         st.error(f"❌ Gagal memproses file Excel: {e}")
@@ -1163,6 +1268,11 @@ with tab_guru:
             st.markdown("---")
             st.subheader("👀 Preview Soal yang Aktif Saat Ini")
             
+            cnt1 = len(st.session_state.questions_db.get("1", []))
+            cnt2 = len(st.session_state.questions_db.get("2", []))
+            cnt3 = len(st.session_state.questions_db.get("3", []))
+            st.caption(f"📌 Ringkasan Soal: **Level 1** ({cnt1} Soal) | **Level 2** ({cnt2} Soal) | **Level 3** ({cnt3} Soal)")
+
             lvl_select = st.selectbox("Pilih Level untuk Dilihat:", ["Level 1", "Level 2", "Level 3"])
             lvl_key = "1" if "1" in lvl_select else "2" if "2" in lvl_select else "3"
             

@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import urllib.request
 import json
 import pandas as pd
+import io
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
@@ -52,30 +53,37 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Default Bank Soal jika Firebase belum memiliki data soal
+# Initial Bank Soal Default
 DEFAULT_QUESTIONS = {
     "1": [
-        {"q": "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", "opt": ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], "ans": 0},
-        {"q": "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", "opt": ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], "ans": 1},
-        {"q": "Siapakah Ketua (Kaichou) utama dari BPUPK?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], "ans": 2},
-        {"q": "Nama BPUPK dalam bahasa Jepang dinamakan...", "opt": ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], "ans": 3},
-        {"q": "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", "opt": ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], "ans": 0},
-        {"q": "Sidang Pertama BPUPK berlangsung dari tanggal...", "opt": ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], "ans": 2},
-        {"q": "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", "opt": ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], "ans": 0}
+        { "q": "BPUPK secara resmi dibentuk oleh pemerintah pendudukan Jepang pada tanggal...", "opt": ["1 Maret 1945", "29 April 1945", "1 Juni 1945", "17 Agustus 1945"], "ans": 0 },
+        { "q": "Pelantikan pengurus BPUPK secara resmi dilaksanakan pada tanggal...", "opt": ["1 Maret 1945", "28 Mei 1945", "22 Juni 1945", "18 Agustus 1945"], "ans": 1 },
+        { "q": "Siapakah Ketua (Kaichou) utama dari BPUPK?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Dr. K.R.T. Radjiman Wedyodiningrat", "Mr. Soepomo"], "ans": 2 },
+        { "q": "Nama BPUPK dalam bahasa Jepang dinamakan...", "opt": ["Dokuritsu Junbi Inkai", "Heiho", "Chuo Sangi In", "Dokuritsu Junbi Cosakai"], "ans": 3 },
+        { "q": "Tokoh Jepang yang ditunjuk menjadi Wakil Ketua (Fuku Kaichou) BPUPK adalah...", "opt": ["Ichibangase Yosio", "Maeda Tadashi", "Terauchi Hisaichi", "Kumakichi Harada"], "ans": 0 },
+        { "q": "Sidang Pertama BPUPK berlangsung dari tanggal...", "opt": ["10 - 17 Juli 1945", "22 - 25 Juni 1945", "29 Mei - 1 Juni 1945", "17 - 18 Agustus 1945"], "ans": 2 },
+        { "q": "Agenda utama pembahasan dalam Sidang Pertama BPUPK adalah perumusan...", "opt": ["Dasar Negara", "Teks Proklamasi", "Rancangan Undang-Undang Dasar", "Lambang Negara"], "ans": 0 }
     ],
     "2": [
-        {"q": "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", "opt": ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], "ans": 0},
-        {"q": "Tugas utama dari Panitia Sembilan adalah...", "opt": ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], "ans": 0},
-        {"q": "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], "ans": 0}
+        { "q": "Panitia Sembilan dibentuk pada masa reses BPUPK, yaitu pada tanggal...", "opt": ["22 Juni 1945", "1 Juni 1945", "10 Juli 1945", "17 Agustus 1945"], "ans": 0 },
+        { "q": "Tugas utama dari Panitia Sembilan adalah...", "opt": ["Menyelaraskan usulan dasar negara dan menyusun rancangan Pembukaan UUD", "Menyiapkan naskah proklamasi", "Memilih Presiden dan Wakil Presiden", "Membentuk komite nasional daerah"], "ans": 0 },
+        { "q": "Siapakah yang bertindak sebagai Ketua Panitia Sembilan?", "opt": ["Ir. Soekarno", "Drs. Mohammad Hatta", "Mr. Muhammad Yamin", "K.H. A. Wahid Hasjim"], "ans": 0 }
     ],
     "3": [
-        {"q": "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", "opt": ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], "ans": 0},
-        {"q": "Sidang pertama PPKI dilaksanakan pada tanggal...", "opt": ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], "ans": 0},
-        {"q": "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", "opt": ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], "ans": 0}
+        { "q": "PPKI secara resmi dibentuk oleh pihak Jepang pada tanggal...", "opt": ["7 Agustus 1945", "18 Agustus 1945", "1 Maret 1945", "17 Agustus 1945"], "ans": 0 },
+        { "q": "Sidang pertama PPKI dilaksanakan pada tanggal...", "opt": ["18 Agustus 1945", "17 Agustus 1945", "19 Agustus 1945", "22 Agustus 1945"], "ans": 0 },
+        { "q": "Keputusan penting Sidang PPKI 18 Agustus 1945 adalah...", "opt": ["Mengesahkan UUD 1945 dan penetapan Pancasila sebagai Dasar Negara", "Membentuk Tentara Nasional Indonesia", "Menetapkan lagu Indonesia Raya", "Memilih para menteri kabinet"], "ans": 0 }
     ]
 }
 
-# Function Fetch Data Leaderboard dari Firebase
+# Inisialisasi Session State
+if 'questions_db' not in st.session_state:
+    st.session_state.questions_db = DEFAULT_QUESTIONS
+
+if 'logged_in_guru' not in st.session_state:
+    st.session_state.logged_in_guru = False
+
+# Function Fetch Data Firebase untuk Dashboard Guru
 def fetch_firebase_data():
     url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/leaderboard.json"
     try:
@@ -84,45 +92,64 @@ def fetch_firebase_data():
             data = json.loads(response.read().decode())
             if data:
                 records = list(data.values())
-                df = pd.DataFrame(records)
-                return df
+                return pd.DataFrame(records)
     except Exception as e:
-        st.error(f"Gagal terhubung ke database leaderboard: {e}")
+        st.error(f"Gagal terhubung ke database: {e}")
     return pd.DataFrame()
 
-# Function Fetch Questions dari Firebase
-def fetch_questions():
-    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/questions.json"
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=5) as response:
-            data = json.loads(response.read().decode())
-            if data:
-                return data
-    except Exception:
-        pass
-    return DEFAULT_QUESTIONS
+# Function untuk membuat file template Excel
+def generate_excel_template():
+    data = [
+        {"level": 1, "pertanyaan": "Siapakah Ketua BPUPK?", "pilihan_a": "Soekarno", "pilihan_b": "Hatta", "pilihan_c": "Dr. Radjiman", "pilihan_d": "Soepomo", "jawaban_benar": "C"},
+        {"level": 2, "pertanyaan": "Kapan Panitia Sembilan dibentuk?", "pilihan_a": "22 Juni 1945", "pilihan_b": "1 Juni 1945", "pilihan_c": "10 Juli 1945", "pilihan_d": "17 Agustus 1945", "jawaban_benar": "A"},
+        {"level": 3, "pertanyaan": "Kapan sidang pertama PPKI?", "pilihan_a": "18 Agustus 1945", "pilihan_b": "17 Agustus 1945", "pilihan_c": "19 Agustus 1945", "pilihan_d": "22 Agustus 1945", "jawaban_benar": "A"}
+    ]
+    df_template = pd.DataFrame(data)
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df_template.to_excel(writer, index=False, sheet_name='BankSoal')
+    return buffer.getvalue()
 
-# Function Save Questions ke Firebase
-def save_questions(questions_data):
-    url = "https://gamepancasila-default-rtdb.asia-southeast1.firebasedatabase.app/questions.json"
-    try:
-        payload = json.dumps(questions_data).encode('utf-8')
-        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'}, method='PUT')
-        with urllib.request.urlopen(req, timeout=5) as response:
-            return True
-    except Exception as e:
-        st.error(f"Gagal menyimpan ke database: {e}")
-        return False
+# Function parsing file Excel menjadi format JSON Bank Soal
+def process_uploaded_excel(uploaded_file):
+    df = pd.read_excel(uploaded_file)
+    df.columns = df.columns.str.strip().str.lower()
+    
+    required_cols = ['level', 'pertanyaan', 'pilihan_a', 'pilihan_b', 'pilihan_c', 'pilihan_d', 'jawaban_benar']
+    for col in required_cols:
+        if col not in df.columns:
+            raise ValueError(f"Kolom wajib '{col}' tidak ditemukan di file Excel.")
+    
+    new_db = {"1": [], "2": [], "3": []}
+    ans_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3, '0': 0, '1': 1, '2': 2, '3': 3}
 
-# Master Template Engine HTML5 + CSS + JavaScript (Siswa)
+    for _, row in df.iterrows():
+        lvl = str(int(row['level'])).strip()
+        if lvl not in new_db:
+            continue
+        
+        raw_ans = str(row['jawaban_benar']).strip().upper()
+        ans_idx = ans_map.get(raw_ans, 0)
+
+        new_db[lvl].append({
+            "q": str(row['pertanyaan']).strip(),
+            "opt": [
+                str(row['pilihan_a']).strip(),
+                str(row['pilihan_b']).strip(),
+                str(row['pilihan_c']).strip(),
+                str(row['pilihan_d']).strip()
+            ],
+            "ans": ans_idx
+        })
+    return new_db
+
+# Template HTML/JS Game
 game_html_template = """
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -152,7 +179,6 @@ game_html_template = """
         justify-content: center;
         min-height: 100vh;
     }
-
     .card {
         background: rgba(26, 8, 12, 0.92);
         border: 2px solid rgba(255, 215, 0, 0.5);
@@ -166,14 +192,12 @@ game_html_template = """
         transform: translateZ(0);
         animation: popIn 0.35s ease-out;
     }
-
     h2 { 
         color: #ffd700;
         margin-top: 0; 
         font-size: clamp(20px, 5vw, 26px);
         text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
     }
-    
     .input-field {
         width: 100%;
         padding: 10px 14px;
@@ -187,10 +211,7 @@ game_html_template = """
         margin-bottom: 10px;
         transition: border-color 0.2s ease;
     }
-    .input-field:focus {
-        border-color: #ffd700;
-    }
-
+    .input-field:focus { border-color: #ffd700; }
     .stats-bar {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -206,7 +227,6 @@ game_html_template = """
     .stat-item { text-align: center; }
     .stat-title { font-size: 9px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
     .stat-value { font-size: 12px; font-weight: bold; white-space: nowrap; }
-
     #grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -222,7 +242,6 @@ game_html_template = """
         will-change: transform;
         transform: translateZ(0);
     }
-
     .tile {
         width: 100%;
         aspect-ratio: 1 / 1;
@@ -240,21 +259,15 @@ game_html_template = """
         will-change: transform, opacity;
         transform: translateZ(0);
     }
-
     .tile::before {
         content: '';
         position: absolute;
-        top: 2px;
-        left: 3px;
-        right: 3px;
-        height: 38%;
+        top: 2px; left: 3px; right: 3px; height: 38%;
         background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.02));
         border-radius: 6px 6px 100% 100%;
         pointer-events: none;
     }
-
     .tile:active { transform: scale(0.92); }
-
     .tile.selected {
         border: 2.5px solid #ffffff !important;
         transform: scale(1.12);
@@ -262,133 +275,74 @@ game_html_template = """
         z-index: 10;
         animation: pulse-gem 0.6s infinite alternate ease-in-out;
     }
-
     .tile.matched-pop {
         transform: scale(1.3) rotate(90deg) !important;
         opacity: 0 !important;
         transition: transform 0.25s ease-out, opacity 0.25s ease-out;
     }
-
     @keyframes pulse-gem {
         0% { transform: scale(1.08); }
         100% { transform: scale(1.16); }
     }
-
     .gem-topaz { background: linear-gradient(135deg, #ffe066, #d4af37, #8a7300); }
     .gem-sapphire { background: linear-gradient(135deg, #4dabf7, #1971c2, #0c365e); }
     .gem-emerald { background: linear-gradient(135deg, #51cf66, #2b8a3e, #123b1a); }
     .gem-ruby { background: linear-gradient(135deg, #ff6b6b, #c92a2a, #5c0b0b); }
     .gem-amber { background: linear-gradient(135deg, #ffc078, #d9480f, #7a2200); }
     .gem-amethyst { background: linear-gradient(135deg, #cc5de8, #862e9c, #3b0d48); }
-
     .modal-overlay {
         position: fixed;
-        top: 0; left: 0;
-        right: 0; bottom: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 16px;
-        z-index: 100;
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+        padding: 16px; z-index: 100;
     }
-
     .timer-bar-container {
-        width: 100%;
-        height: 8px;
+        width: 100%; height: 8px;
         background: rgba(255,255,255,0.2);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 12px;
+        border-radius: 4px; overflow: hidden; margin-bottom: 12px;
     }
-    .timer-bar { 
-        height: 100%; 
-        background: #ffd700; 
-        width: 100%; 
-    }
-    
+    .timer-bar { height: 100%; background: #ffd700; width: 100%; }
     .btn {
         background: linear-gradient(45deg, #d32f2f, #b71c1c);
         color: white; border: 1.5px solid #ffd700;
         padding: 12px 20px; font-size: 15px; font-weight: bold;
-        border-radius: 25px; cursor: pointer; 
-        transition: transform 0.15s ease;
-        margin: 6px;
-        width: 100%;
-        max-width: 300px;
+        border-radius: 25px; cursor: pointer; transition: transform 0.15s ease;
+        margin: 6px; width: 100%; max-width: 300px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
     .btn:active { transform: scale(0.95); }
-
     .opt-btn {
         background: rgba(255, 255, 255, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.25);
         color: white; padding: 12px; border-radius: 10px;
         text-align: left; font-size: 13px; cursor: pointer;
-        margin-bottom: 8px;
-        width: 100%; transition: background-color 0.15s ease;
+        margin-bottom: 8px; width: 100%; transition: background-color 0.15s ease;
     }
     .opt-btn:active { background: rgba(255, 215, 0, 0.3); border-color: #ffd700; }
     .opt-btn.correct { background: #2e7d32 !important; }
     .opt-btn.wrong { background: #c62828 !important; }
-
     .hidden { display: none !important; }
-
     .leaderboard-box {
-        margin-top: 14px;
-        background: rgba(0, 0, 0, 0.55);
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 215, 0, 0.35);
+        margin-top: 14px; background: rgba(0, 0, 0, 0.55);
+        padding: 10px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.35);
     }
-    .leaderboard-title {
-        font-size: 13px;
-        color: #ffd700;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    .leaderboard-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 11px;
-    }
-    .leaderboard-table th {
-        background: rgba(255, 215, 0, 0.25);
-        color: #ffd700;
-        padding: 6px 4px;
-        text-align: left;
-    }
-    .leaderboard-table td {
-        padding: 5px 4px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        text-align: left;
-    }
-
-    @keyframes popIn {
-        from { opacity: 0; transform: scale(0.92); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    .shake {
-        animation: shakeAnim 0.3s ease-in-out;
-    }
+    .leaderboard-title { font-size: 13px; color: #ffd700; font-weight: bold; margin-bottom: 8px; }
+    .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .leaderboard-table th { background: rgba(255, 215, 0, 0.25); color: #ffd700; padding: 6px 4px; text-align: left; }
+    .leaderboard-table td { padding: 5px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    .shake { animation: shakeAnim 0.3s ease-in-out; }
     @keyframes shakeAnim {
         0%, 100% { transform: translate(0, 0); }
         25% { transform: translate(-6px, 0); }
         75% { transform: translate(6px, 0); }
     }
-
     .floating-text {
-        position: absolute;
-        font-weight: 900;
-        font-size: 20px;
-        color: #ffd700;
-        text-shadow: 0 2px 4px #000;
-        pointer-events: none;
-        animation: floatUp 0.75s ease-out forwards;
-        z-index: 999;
-        will-change: transform, opacity;
+        position: absolute; font-weight: 900; font-size: 20px; color: #ffd700;
+        text-shadow: 0 2px 4px #000; pointer-events: none;
+        animation: floatUp 0.75s ease-out forwards; z-index: 999;
     }
     @keyframes floatUp {
         0% { opacity: 1; transform: translateY(0) scale(0.9); }
@@ -607,8 +561,8 @@ game_html_template = """
     const levelTimeLimits = { 1: 300, 2: 240, 3: 180 };
     const questionTimeLimits = { 1: 45, 2: 30, 3: 20 };
 
-    // Bank Soal Dihubungkan secara Dinamis dari Python Backend
-    const questionsDB = __QUESTIONS_JSON__;
+    // Bank Soal Dinamis Injected dari Python
+    const questionsDB = %%QUESTIONS_DB%%;
 
     let playerNama = "";
     let playerKelas = "";
@@ -700,10 +654,7 @@ game_html_template = """
         questionsAnswered = 0;
         levelTimeLeft = levelTimeLimits[currentLevel] || 300;
         
-        let rawQuestions = questionsDB[currentLevel] || questionsDB[String(currentLevel)] || [];
-        if(!rawQuestions || rawQuestions.length === 0) {
-            rawQuestions = questionsDB[1] || questionsDB["1"] || [];
-        }
+        let rawQuestions = questionsDB[currentLevel] || questionsDB[1] || [];
         currentQuestionPool = shuffleArray(rawQuestions);
 
         updateUI();
@@ -896,36 +847,31 @@ game_html_template = """
 
     function triggerQuiz() {
         if (currentQuestionPool.length === 0) {
-            let rawQuestions = questionsDB[currentLevel] || questionsDB[String(currentLevel)] || [];
-            if(!rawQuestions || rawQuestions.length === 0) {
-                rawQuestions = questionsDB[1] || questionsDB["1"] || [];
-            }
+            let rawQuestions = questionsDB[currentLevel] || questionsDB[1] || [];
             currentQuestionPool = shuffleArray(rawQuestions);
         }
 
         let qObj = currentQuestionPool.pop();
 
         document.getElementById('modal-tag').innerText = `KUIS LEVEL ${currentLevel} - SEJARAH PANCASILA`;
-        document.getElementById('quiz-question').innerText = qObj ? qObj.q : "Pertanyaan tidak tersedia.";
+        document.getElementById('quiz-question').innerText = qObj.q;
 
         let optionsContainer = document.getElementById('quiz-options');
         optionsContainer.innerHTML = '';
 
-        if(qObj && qObj.opt) {
-            let optionsList = qObj.opt.map((optText, index) => ({
-                text: optText,
-                isCorrect: index === qObj.ans
-            }));
-            optionsList = shuffleArray(optionsList);
+        let optionsList = qObj.opt.map((optText, index) => ({
+            text: optText,
+            isCorrect: index === qObj.ans
+        }));
+        optionsList = shuffleArray(optionsList);
 
-            optionsList.forEach(optItem => {
-                let btn = document.createElement('button');
-                btn.classList.add('opt-btn');
-                btn.innerText = optItem.text;
-                btn.onclick = () => handleAnswer(optItem.isCorrect, btn);
-                optionsContainer.appendChild(btn);
-            });
-        }
+        optionsList.forEach(optItem => {
+            let btn = document.createElement('button');
+            btn.classList.add('opt-btn');
+            btn.innerText = optItem.text;
+            btn.onclick = () => handleAnswer(optItem.isCorrect, btn);
+            optionsContainer.appendChild(btn);
+        });
 
         document.getElementById('quiz-modal').classList.remove('hidden');
 
@@ -1043,60 +989,47 @@ game_html_template = """
 </html>
 """
 
-# Inisialisasi Session State untuk Login Guru
-if "teacher_logged_in" not in st.session_state:
-    st.session_state["teacher_logged_in"] = False
+# Render HTML dengan Injeksi JSON Bank Soal terbaru
+game_html = game_html_template.replace("%%QUESTIONS_DB%%", json.dumps(st.session_state.questions_db))
 
 # Layout Utama Menggunakan Tab Streamlit
 tab_siswa, tab_guru = st.tabs(["🎮 Zone Main Siswa", "👨‍🏫 Dashboard Guru"])
 
 with tab_siswa:
-    # Ambil soal terbaru dari database untuk komponen game
-    current_questions = fetch_questions()
-    rendered_game_html = game_html_template.replace("__QUESTIONS_JSON__", json.dumps(current_questions))
-    components.html(rendered_game_html, height=880, scrolling=True)
+    components.html(game_html, height=880, scrolling=True)
 
 with tab_guru:
-    st.title("👨‍🏫 Dashboard Pengelolaan & Pemantauan Guru")
+    st.title("👨‍🏫 Portal Pengelolaan Guru")
 
-    # Cek Status Login Guru
-    if not st.session_state["teacher_logged_in"]:
-        st.subheader("🔒 Autentikasi Guru")
-        st.info("Silakan masukan kredensial login Anda untuk mengakses Rekap Nilai Siswa dan Mengedit Bank Soal.")
-        
-        col_login, _ = st.columns([2, 3])
-        with col_login:
-            with st.form("form_login_guru"):
-                username = st.text_input("Username Guru:")
-                password = st.text_input("Password:", type="password")
-                btn_login = st.form_submit_button("🔑 Login Guru")
+    # Sistem Login Guru
+    if not st.session_state.logged_in_guru:
+        st.subheader("🔒 Silakan Login Terlebih Dahulu")
+        with st.form("form_login"):
+            username_input = st.text_input("Username")
+            password_input = st.text_input("Password", type="password")
+            btn_login = st.form_submit_button("🔑 Login Guru")
 
-                if btn_login:
-                    # Kredensial Default Guru (Dapat disesuaikan)
-                    if username == "guru" and password == "pancasila123":
-                        st.session_state["teacher_logged_in"] = True
-                        st.success("Login berhasil!")
-                        st.rerun()
-                    else:
-                        st.error("Username atau Password salah!")
+            if btn_login:
+                if username_input == "guru" and password_input == "guru":
+                    st.session_state.logged_in_guru = True
+                    st.success("Login Berhasil! Mengalihkan...")
+                    st.rerun()
+                else:
+                    st.error("Username atau Password salah! (Default: guru / guru)")
     else:
-        # Header Guru Logged In
-        col_header_1, col_header_2 = st.columns([4, 1])
-        with col_header_1:
-            st.success("🟢 Terhubung sebagai: **Guru / Administrator**")
-        with col_header_2:
+        # Tombol Logout
+        col_title, col_logout = st.columns([4, 1])
+        with col_logout:
             if st.button("🚪 Logout"):
-                st.session_state["teacher_logged_in"] = False
+                st.session_state.logged_in_guru = False
                 st.rerun()
 
-        st.markdown("---")
+        # Tab Menu Internal Guru
+        tab_nilai, tab_soal = st.tabs(["📊 Rekap Nilai Siswa", "✏️ Kelola Bank Soal (Excel)"])
 
-        # Tab Sub-Menu Guru
-        sub_tab_nilai, sub_tab_soal = st.tabs(["📊 Rekap Nilai Siswa", "📝 Kelola Bank Soal"])
-
-        # SUB-TAB 1: REKAP NILAI SISWA
-        with sub_tab_nilai:
-            st.subheader("📋 Hasil Permainan Siswa Realtime")
+        # TAB REKAP NILAI SISWA
+        with tab_nilai:
+            st.caption("Pantau progres dan hasil akhir siswa secara realtime.")
 
             col_btn, _ = st.columns([1, 4])
             with col_btn:
@@ -1128,6 +1061,7 @@ with tab_guru:
 
                 st.markdown("---")
 
+                # Filter Siswa
                 col_f1, col_f2 = st.columns(2)
                 with col_f1:
                     daftar_kelas = ["Semua Kelas"] + sorted(list(df['kelas'].astype(str).unique()))
@@ -1154,6 +1088,7 @@ with tab_guru:
                     'waktu': 'Waktu Bermain'
                 })
 
+                st.subheader("📋 Rekap Hasil Permainan Siswa")
                 st.dataframe(display_df, use_container_width=True, hide_index=True)
 
                 csv_data = display_df.to_csv(index=False).encode('utf-8')
@@ -1164,94 +1099,58 @@ with tab_guru:
                     mime="text/csv"
                 )
 
-        # SUB-TAB 2: KELOLA BANK SOAL
-        with sub_tab_soal:
-            st.subheader("✏️ Editor Bank Soal Kuis")
-            st.caption("Perubahan pada soal akan langsung diterapkan dalam permainan siswa saat halaman dimuat ulang.")
+        # TAB KELOLA BANK SOAL VIA EXCEL
+        with tab_soal:
+            st.subheader("📂 Update Bank Soal via File Excel")
+            st.markdown("""
+            Anda dapat memperbarui seluruh bank soal kuis yang muncul di dalam game dengan mengunggah file Excel (`.xlsx`).
+            
+            **Format Kolom Excel Wajib:**
+            - **level** : `1` (BPUPK), `2` (Panitia 9), atau `3` (PPKI)
+            - **pertanyaan** : Teks pertanyaan kuis
+            - **pilihan_a** : Teks opsi pilihan A
+            - **pilihan_b** : Teks opsi pilihan B
+            - **pilihan_c** : Teks opsi pilihan C
+            - **pilihan_d** : Teks opsi pilihan D
+            - **jawaban_benar** : Jawaban benar (`A`, `B`, `C`, atau `D`)
+            """)
 
-            # Load Data Soal dari Firebase ke Session State jika belum ada
-            if "questions_editor" not in st.session_state:
-                st.session_state["questions_editor"] = fetch_questions()
-
-            # Pilihan Level yang ingin diedit
-            level_options = {
-                "1": "Level 1: BPUPK (Kelahiran Pancasila)",
-                "2": "Level 2: Panitia Sembilan (Piagam Jakarta)",
-                "3": "Level 3: PPKI (Pengesahan UUD 1945)"
-            }
-            selected_lvl_key = st.selectbox(
-                "Pilih Level yang Ingin Diedit:",
-                options=list(level_options.keys()),
-                format_func=lambda x: level_options[x]
+            # Download Template
+            template_excel = generate_excel_template()
+            st.download_button(
+                label="📥 Unduh Templat Excel Bank Soal",
+                data=template_excel,
+                file_name="Template_Bank_Soal_Pancasila.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-            current_lvl_questions = st.session_state["questions_editor"].get(selected_lvl_key, [])
-
-            st.write(f"**Daftar Soal {level_options[selected_lvl_key]} ({len(current_lvl_questions)} Soal):**")
-
-            # Form Pengeditan Soal-soal
-            questions_to_delete = []
-            for idx, item in enumerate(current_lvl_questions):
-                with st.expander(f"📌 Soal #{idx + 1}: {item['q'][:60]}..."):
-                    # Edit Pertanyaan
-                    new_q = st.text_area(f"Pertanyaan Soal #{idx+1}:", value=item['q'], key=f"q_{selected_lvl_key}_{idx}")
-                    
-                    # Edit Opsi
-                    c1, c2 = st.columns(2)
-                    opts = item['opt']
-                    with c1:
-                        opt_a = st.text_input(f"Opsi A:", value=opts[0] if len(opts)>0 else "", key=f"opt_a_{selected_lvl_key}_{idx}")
-                        opt_b = st.text_input(f"Opsi B:", value=opts[1] if len(opts)>1 else "", key=f"opt_b_{selected_lvl_key}_{idx}")
-                    with c2:
-                        opt_c = st.text_input(f"Opsi C:", value=opts[2] if len(opts)>2 else "", key=f"opt_c_{selected_lvl_key}_{idx}")
-                        opt_d = st.text_input(f"Opsi D:", value=opts[3] if len(opts)>3 else "", key=f"opt_d_{selected_lvl_key}_{idx}")
-
-                    # Edit Kunci Jawaban
-                    ans_map = {"A (Opsi 1)": 0, "B (Opsi 2)": 1, "C (Opsi 3)": 2, "D (Opsi 4)": 3}
-                    current_ans_index = item.get('ans', 0)
-                    selected_ans_str = st.selectbox(
-                        f"Kunci Jawaban Benar:",
-                        options=list(ans_map.keys()),
-                        index=current_ans_index if current_ans_index in [0, 1, 2, 3] else 0,
-                        key=f"ans_{selected_lvl_key}_{idx}"
-                    )
-
-                    # Update ke Session State
-                    st.session_state["questions_editor"][selected_lvl_key][idx] = {
-                        "q": new_q,
-                        "opt": [opt_a, opt_b, opt_c, opt_d],
-                        "ans": ans_map[selected_ans_str]
-                    }
-
-                    # Hapus Soal
-                    if st.button(f"🗑️ Hapus Soal #{idx+1}", key=f"del_{selected_lvl_key}_{idx}"):
-                        questions_to_delete.append(idx)
-
-            # Proses Penghapusan Soal
-            if questions_to_delete:
-                for del_idx in reversed(questions_to_delete):
-                    st.session_state["questions_editor"][selected_lvl_key].pop(del_idx)
-                st.rerun()
-
             st.markdown("---")
-            
-            col_add, col_save = st.columns(2)
-            with col_add:
-                if st.button("➕ Tambah Soal Baru"):
-                    new_default_question = {
-                        "q": "Tulis pertanyaan baru di sini...",
-                        "opt": ["Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D"],
-                        "ans": 0
-                    }
-                    if selected_lvl_key not in st.session_state["questions_editor"]:
-                        st.session_state["questions_editor"][selected_lvl_key] = []
-                    st.session_state["questions_editor"][selected_lvl_key].append(new_default_question)
-                    st.rerun()
 
-            with col_save:
-                if st.button("💾 Simpan Perubahan Bank Soal ke Database", type="primary"):
-                    success = save_questions(st.session_state["questions_editor"])
-                    if success:
-                        st.success("✅ Bank Soal berhasil diperbarui di database Firebase!")
-                    else:
-                        st.error("❌ Gagal menyimpan Bank Soal!")
+            # Form Upload
+            uploaded_file = st.file_uploader("Unggah File Excel Soal Baru (.xlsx)", type=["xlsx"])
+            if uploaded_file is not None:
+                if st.button("🚀 Terapkan & Update Bank Soal Game"):
+                    try:
+                        parsed_db = process_uploaded_excel(uploaded_file)
+                        st.session_state.questions_db = parsed_db
+                        st.success("✅ Bank Soal berhasil diperbarui! Game siswa kini menggunakan soal terbaru.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Gagal memproses file Excel: {e}")
+
+            # Preview Soal Saat Ini
+            st.markdown("---")
+            st.subheader("👀 Preview Soal yang Aktif Saat Ini")
+            
+            lvl_select = st.selectbox("Pilih Level untuk Dilihat:", ["Level 1 (BPUPK)", "Level 2 (Panitia 9)", "Level 3 (PPKI)"])
+            lvl_key = "1" if "1" in lvl_select else "2" if "2" in lvl_select else "3"
+            
+            soal_list = st.session_state.questions_db.get(lvl_key, [])
+            if soal_list:
+                for idx, s in enumerate(soal_list, 1):
+                    with st.expander(f"Soal #{idx}: {s['q']}"):
+                        ans_text = s['opt'][s['ans']] if s['ans'] < len(s['opt']) else "-"
+                        st.write(f"- **Pilihan**: {', '.join(s['opt'])}")
+                        st.write(f"- **Jawaban Benar**: {ans_text}")
+            else:
+                st.warning("Belum ada soal pada level ini.")
